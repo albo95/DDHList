@@ -1,5 +1,5 @@
 //
-//  GenericDraggableListView.swift
+//  DragAndDropListView.swift
 //  ProveDragAndDropSezioni
 //
 //  Created by Alberto Bruno on 16/10/25.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import CoreTransferable
 
-struct DraggableListView<ItemType: Transferable & Identifiable, RowView: View>: View {
+struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>: View {
     var items: [ItemType]
     let rowView: (ItemType) -> RowView
     let isDeleteRowEnabled: Bool
@@ -20,9 +20,12 @@ struct DraggableListView<ItemType: Transferable & Identifiable, RowView: View>: 
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
     
+    @State private var dragTargetIndex: Int? = nil
     @State private var dropTargetIndex: Int? = nil
     @State private var rowSemiHeight: CGFloat = 0
+    @State private var rowWidth: CGFloat = 0
     @State private var currentlySwipedRow: Int? = nil
+    @State private var currentlyDraggedIndex: Int? = nil
     @State private var currentlyDraggedItem: ItemType? = nil
     @State private var lastDraggedItem: ItemType? = nil
     
@@ -149,6 +152,7 @@ struct DraggableListView<ItemType: Transferable & Identifiable, RowView: View>: 
                                     Color.clear
                                         .onAppear {
                                             rowSemiHeight = geo.size.height / 2
+                                            rowWidth = geo.size.width
                                         }
                                 }
                             )
@@ -173,18 +177,24 @@ struct DraggableListView<ItemType: Transferable & Identifiable, RowView: View>: 
         }
     }
     
+    private func onDrag(index: Int) {
+        resetSwiping()
+        currentlyDraggedIndex = index
+    }
+    
     private func resetSwiping() {
         currentlySwipedRow = nil
     }
     
     private func resetDragging() {
         dropTargetIndex = nil
+        currentlyDraggedIndex = nil
         currentlyDraggedItem = nil
     }
     
     // MARK: - Row Wrapper
     private func rowWrapper(for item: ItemType, index: Int) -> some View {
-        FileItemRowWrapper(
+        RowWrapper(
             index: index,
             item: item,
             currentlySwipedRow: $currentlySwipedRow,
@@ -195,10 +205,13 @@ struct DraggableListView<ItemType: Transferable & Identifiable, RowView: View>: 
             content: rowView,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
             colorOnHover: colorOnHover,
-            onDrag: resetSwiping,
+            onDrag: {
+                onDrag(index: index)
+            },
             onDrop: resetDragging,
             canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
-            isDragAndDropEnabled: isDragAndDropEnabled
+            isDragAndDropEnabled: isDragAndDropEnabled,
+            rowWidth: rowWidth
         )
         .padding(.vertical, 1)
     }
@@ -219,6 +232,7 @@ struct DraggableListView<ItemType: Transferable & Identifiable, RowView: View>: 
                 }
                 return true
             } isTargeted: { value in
+                guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
                 dropTargetIndex = value ? index : nil
             }
             .offset(y: isOnTop ? -rowSemiHeight : rowSemiHeight)

@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct FileItemRow: View {
-    let fileItem: FileItem
+struct FileItemRowExample: View {
+    let fileItem: FileItemExample
     var body: some View {
         HStack {
             Text(fileItem.name)
@@ -19,5 +19,5 @@ struct FileItemRow: View {
 }
 
 #Preview {
-    FileItemRow(fileItem: FileItem.mockItem)
+    FileItemRowExample(fileItem: FileItemExample.mockItem)
 }

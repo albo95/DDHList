@@ -9,15 +9,15 @@ import Foundation
 import SwiftUI
 
 struct ContentView: View {
-    @State private var items = FileItem.mockItems
+    @State private var items = FileItemExample.mockItems
     @State private var selectedVariant = 0
 
     private let variants = [
-        "Delete only",
-        "Drag on separator only",
-        "Drag on separator + other item",
-        "Delete + Drag on separator",
-        "Delete + Drag on separator + other item"
+        "D",
+        "DS",
+        "DS-DI",
+        "D-DS",
+        "D-DS-DI"
     ]
     
     var body: some View {
@@ -35,25 +35,25 @@ struct ContentView: View {
             Group {
                 switch selectedVariant {
                 case 0: // Delete only
-                    DraggableListView(
+                    DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRow(fileItem: $0) },
+                        rowView: { FileItemRowExample(fileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         }
                     )
                 case 1: // Drag on separator only
-                    DraggableListView(
+                    DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRow(fileItem: $0) },
+                        rowView: { FileItemRowExample(fileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
                             print("Dropped \(dragged.name) between \(above) and \(below)")
                         }
                     )
                 case 2: // Drag on separator + other item
-                    DraggableListView(
+                    DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRow(fileItem: $0) },
+                        rowView: { FileItemRowExample(fileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
                             print("Dropped \(dragged.name) between \(above) and \(below)")
                         },
@@ -62,9 +62,9 @@ struct ContentView: View {
                         }
                     )
                 case 3: // Delete + Drag on separator
-                    DraggableListView(
+                    DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRow(fileItem: $0) },
+                        rowView: { FileItemRowExample(fileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         },
@@ -73,9 +73,9 @@ struct ContentView: View {
                         }
                     )
                 case 4: // Delete + Drag on separator + other item
-                    DraggableListView(
+                    DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRow(fileItem: $0) },
+                        rowView: { FileItemRowExample(fileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         },

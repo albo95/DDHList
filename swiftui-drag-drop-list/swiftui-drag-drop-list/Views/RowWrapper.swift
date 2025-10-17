@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct FileItemRowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
+struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
     let index: Int
     let item: ItemType
     @Binding var currentlySwipedRow: Int?
@@ -23,6 +23,7 @@ struct FileItemRowWrapper<ItemType: Transferable & Identifiable, Content: View>:
     let onDrop: () -> Void
     let canBeDraggedOn: Bool
     let isDragAndDropEnabled: Bool
+    let rowWidth: CGFloat?
     @State private var isTargeted: Bool = false
     
     var body: some View {
@@ -47,15 +48,17 @@ struct FileItemRowWrapper<ItemType: Transferable & Identifiable, Content: View>:
                         }
                     )
                 )
-                .opacity(currentlyDraggedItem?.id == item.id ? 0.5 : 1)
+                .opacity(currentlyDraggedItem?.id == item.id ? 0.2 : 1)
                 .conditionalDraggable(
-                     item,
-                     isEnabled: isDragAndDropEnabled,
-                     currentlyDraggedItem: $currentlyDraggedItem,
-                     lastDraggedItem: $lastDraggedItem,
-                     onDrag: onDrag,
-                     onDrop: onDrop
-                 )
+                    item,
+                    isEnabled: isDragAndDropEnabled,
+                    currentlyDraggedItem: $currentlyDraggedItem,
+                    lastDraggedItem: $lastDraggedItem,
+                    onDrag: onDrag,
+                    onDrop: onDrop,
+                    previewView: AnyView(content(item)),
+                    rowWidth: rowWidth
+                )
                 .dropDestination(for: ItemType.self) { draggedItem, location in
                     defer {
                         lastDraggedItem = draggedItem.first

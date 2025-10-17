@@ -13,26 +13,26 @@ struct SwipeToDeleteModifier: ViewModifier {
     let onDelete: () -> Void
     let isActive: Bool
     @Binding var isSwiped: Bool
-
+    
     let maxOffset: CGFloat = 60
     let threshold: CGFloat = 20
     let gestureSlower: CGFloat = 0.1
-
+    
     @State private var offsetX: CGFloat
-
+    
     init(onDelete: @escaping () -> Void, isActive: Bool = true, isSwiped: Binding<Bool>) {
         self.onDelete = onDelete
         self.offsetX = 60
         self.isActive = isActive
         self._isSwiped = isSwiped
     }
-
+    
     func body(content: Content) -> some View {
         ZStack {
             content
-
+            
             Rectangle().opacity(0.001)
-
+            
             HStack {
                 Spacer()
                 trashIconButtonView
@@ -44,6 +44,10 @@ struct SwipeToDeleteModifier: ViewModifier {
             DragGesture()
                 .onChanged { value in
                     guard isActive else { return }
+                    if abs(value.translation.height) > abs(value.translation.width) {
+                        return
+                    }
+                    
                     let trashIconMovement = value.translation.width * gestureSlower
                     if trashIconMovement > 0 {
                         offsetX = min(offsetX + trashIconMovement, maxOffset)
@@ -65,7 +69,7 @@ struct SwipeToDeleteModifier: ViewModifier {
             }
         }
     }
-
+    
     private var trashIconButtonView: some View {
         Button {
             onDelete()
@@ -74,19 +78,20 @@ struct SwipeToDeleteModifier: ViewModifier {
             }
         } label: {
             Image(systemName: "trash")
+                .font(.system(size: 20))
+                .fontWeight(.semibold)
                 .foregroundStyle(.red)
                 .padding(.horizontal)
-                .padding(.trailing)
         }
     }
-
+    
     private func hideTrashIcon() {
         withAnimation(.spring()) {
             offsetX = maxOffset
             isSwiped = false
         }
     }
-
+    
     private func showTrashIcon() {
         withAnimation(.spring()) {
             offsetX = 0
@@ -102,21 +107,54 @@ struct ConditionalDraggableModifier<ItemType: Transferable & Identifiable>: View
     let onDrop: () -> Void
     @Binding var currentlyDraggedItem: ItemType?
     @Binding var lastDraggedItem: ItemType?
+    let previewView: AnyView?
+    let rowWidth: CGFloat?
+
+    @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
         if isEnabled {
-            content
-                .draggable({
-                    defer {
-                        onDrag()
-                        if lastDraggedItem?.id == item.id {
-                            onDrop()
-                            lastDraggedItem = nil
+            if previewView == nil {
+                content
+                    .draggable(
+                        {
+                            currentlyDraggedItem = item
+                            defer {
+                                onDrag()
+                                if lastDraggedItem?.id == item.id {
+                                    onDrop()
+                                    lastDraggedItem = nil
+                                }
+                            }
+                            return item
+                        }())
+            } else {
+                content
+                    .draggable(
+                        {
+                            currentlyDraggedItem = item
+                            defer {
+                                onDrag()
+                                if lastDraggedItem?.id == item.id {
+                                    onDrop()
+                                    lastDraggedItem = nil
+                                }
+                            }
+                            return item
+                        }(),
+                        preview: {
+                            if let previewView = previewView {
+                                ZStack {
+                                    Rectangle()
+                                        .frame(width: rowWidth)
+                                        .foregroundStyle(.customInvertedPrimary)
+                                    
+                                    previewView
+                                }
+                            }
                         }
-                    }
-                    currentlyDraggedItem = item
-                    return item
-                }())
+                    )
+            }
         } else {
             content
         }
@@ -130,7 +168,9 @@ extension View {
         currentlyDraggedItem: Binding<ItemType?>,
         lastDraggedItem: Binding<ItemType?>,
         onDrag: @escaping () -> Void,
-        onDrop: @escaping () -> Void
+        onDrop: @escaping () -> Void,
+        previewView: AnyView? = nil,
+        rowWidth: CGFloat? = nil
     ) -> some View {
         modifier(ConditionalDraggableModifier(
             item: item,
@@ -138,7 +178,9 @@ extension View {
             onDrag: onDrag,
             onDrop: onDrop,
             currentlyDraggedItem: currentlyDraggedItem,
-            lastDraggedItem: lastDraggedItem
+            lastDraggedItem: lastDraggedItem,
+            previewView: previewView,
+            rowWidth: rowWidth
         ))
     }
 }
