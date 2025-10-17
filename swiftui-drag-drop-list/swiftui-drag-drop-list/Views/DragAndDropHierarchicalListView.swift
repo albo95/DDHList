@@ -1,15 +1,17 @@
 //
-//  DragAndDropListView.swift
-//  ProveDragAndDropSezioni
+//  DragAndDropHierarchicalListView.swift
+//  swiftui-drag-drop-list
 //
-//  Created by Alberto Bruno on 16/10/25.
+//  Created by Alberto Bruno on 17/10/25.
 //
 
-import Foundation
 import SwiftUI
-import CoreTransferable
 
-struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>: View {
+protocol ItemHierarchicalType: Transferable & Identifiable {
+    var children: [Self] { get set }
+}
+
+struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: View>: View {
     var items: [ItemType]
     let rowView: (ItemType) -> RowView
     let isDeleteRowEnabled: Bool
@@ -254,4 +256,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             }
             .offset(y: isOnTop ? -rowSemiHeight : rowSemiHeight)
     }
+}
+
+#Preview {
+    DragAndDropHierarchicalListView()
 }

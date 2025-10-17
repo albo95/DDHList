@@ -83,9 +83,7 @@ struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
                     return false
                     
                 } isTargeted: { value in
-                    if !hideCurrentItem {
-                        hideCurrentItem = true
-                    }
+                    hideCurrentItem = true
                     guard canBeDraggedOn, currentlyDraggedItem?.id != item.id else { return }
                     isTargeted = value
                 }
