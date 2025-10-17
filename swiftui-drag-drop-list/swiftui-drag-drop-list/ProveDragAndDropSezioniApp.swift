@@ -11,7 +11,7 @@ import SwiftUI
 struct ProveDragAndDropSezioniApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DragDropListExampleView()
         }
     }
 }

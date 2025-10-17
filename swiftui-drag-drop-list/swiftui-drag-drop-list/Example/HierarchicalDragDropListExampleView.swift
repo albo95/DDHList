@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  ProveDragAndDropSezioni
+//  HierarchicalDragDropListExampleView
 //
 //  Created by Alberto Bruno on 16/10/25.
 //
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct ContentView: View {
+struct HierarchicalDragDropListExampleView: View {
     @State private var items = HierarchicalFileItemExample.mockItems
     @State private var selectedVariant = 0
 

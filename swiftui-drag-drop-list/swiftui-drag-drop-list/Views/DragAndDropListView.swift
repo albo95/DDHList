@@ -22,8 +22,6 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     
     @State private var dragTargetIndex: Int? = nil
     @State private var dropTargetIndex: Int? = nil
-    @State private var rowSemiHeight: CGFloat = 0
-    @State private var rowWidth: CGFloat = 0
     @State private var currentlySwipedRow: Int? = nil
     @State private var currentlyDraggedIndex: Int? = nil
     @State private var currentlyDraggedItem: ItemType? = nil
@@ -32,6 +30,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
     @State private var hideCurrentItem: Bool = false
+    @State private var rowSemiHeights: [CGFloat]
+    @State private var listWidth: CGFloat = 0
     
     private init(
         items: [ItemType],
@@ -39,9 +39,16 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         isDeleteRowEnabled: Bool = true,
         onDelete: @escaping (Int) -> Void = { _ in },
         isDragAndDropEnabled: Bool = true,
-        onItemDroppedOnSeparator: @escaping (ItemType, Int, Int) -> Void = { _, _, _ in },
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveIndex: Int,
+            _ belowIndex: Int
+        ) -> Void = { _, _, _ in },
         isDragAndDropOnOtherItemsEnabled: Bool = true,
-        onItemDroppedOnOtherItem: @escaping (ItemType, ItemType) -> Void = { _, _ in },
+        onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+        ) -> Void = { _, _ in },
         colorOnHover: Color = .blue
     ) {
         self.items = items
@@ -53,8 +60,10 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         self.isDragAndDropOnOtherItemsEnabled = isDragAndDropOnOtherItemsEnabled
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.colorOnHover = colorOnHover
+        self.rowSemiHeights = Array(repeating: 0, count: items.count)
     }
     
+    // MARK: - Convenience initializers
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
@@ -75,7 +84,11 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onItemDroppedOnSeparator: @escaping (ItemType, Int, Int) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveIndex: Int,
+            _ belowIndex: Int
+        ) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -91,8 +104,15 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onItemDroppedOnSeparator: @escaping (ItemType, Int, Int) -> Void,
-        onItemDroppedOnOtherItem: @escaping (ItemType, ItemType) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveIndex: Int,
+            _ belowIndex: Int
+        ) -> Void,
+        onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+        ) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -109,7 +129,11 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (Int) -> Void,
-        onItemDroppedOnSeparator: @escaping (ItemType, Int, Int) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveIndex: Int,
+            _ belowIndex: Int
+        ) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -127,8 +151,15 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (Int) -> Void,
-        onItemDroppedOnSeparator: @escaping (ItemType, Int, Int) -> Void,
-        onItemDroppedOnOtherItem: @escaping (ItemType, ItemType) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveIndex: Int,
+            _ belowIndex: Int
+        ) -> Void,
+        onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+        ) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -144,51 +175,45 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
-                if let first = items.first {
-                    ZStack {
-                        separatorView(index: -1, isOnTop: true, onDrop: resetDragging)
-                            .zIndex(10)
-                        
-                        rowWrapper(for: first, index: 0)
-                            .background(
-                                GeometryReader { geo in
-                                    Color.clear
-                                        .onAppear {
-                                            rowSemiHeight = geo.size.height / 2
-                                            rowWidth = geo.size.width
-                                        }
-                                }
-                            )
-                            .zIndex(0)
-                        
-                        
-                        separatorView(index: 0)
-                            .zIndex(1)
-                    }
+            LazyVStack(spacing: 0) {
+                ForEach(items.indices, id: \.self) { index in
+                    rowView(item: items[index], index: index)
                 }
-                
-                ForEach(items.indices.dropFirst(), id: \.self) { index in
-                    ZStack {
-                        rowWrapper(for: items[index], index: index)
-                            .zIndex(0)
-                        
-                        separatorView(index: index, onDrop: resetDragging)
-                            .zIndex(1)
-                    }
-                }
-            }.padding(.top, .separatorHooverHeight)
+            }
+            .readSize { size in
+                listWidth = size.width
+            }
+            .padding(.top, .separatorHooverHeight)
         }
         .scrollDisabled(isScrollDisabled)
         .simultaneousGesture(DragGesture().onChanged { gesture in
             totalTranslationWidth += abs(gesture.translation.width)
             totalTranslationHeight += abs(gesture.translation.height)
             isScrollDisabled = totalTranslationWidth > totalTranslationHeight
-        }.onEnded {_ in
-            isScrollDisabled = false
-            totalTranslationWidth = 0
-            totalTranslationHeight = 0
-        })
+        }
+            .onEnded {_ in
+                isScrollDisabled = false
+                totalTranslationWidth = 0
+                totalTranslationHeight = 0
+            })
+    }
+    
+    private func rowView(item: ItemType, index: Int) -> some View {
+        ZStack {
+            if index == 0 {
+                separatorView(index: -1, isOnTop: true, onDrop: resetDragging)
+                    .zIndex(1)
+            }
+            
+            rowWrapper(for: items[index], index: index)
+                .zIndex(0)
+                .readSize { size in
+                    rowSemiHeights[index] = size.height / 2
+                }
+            
+            separatorView(index: index, onDrop: resetDragging)
+                .zIndex(1)
+        }
     }
     
     private func onDrag(index: Int) {
@@ -227,7 +252,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             onDrop: resetDragging,
             canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
             isDragAndDropEnabled: isDragAndDropEnabled,
-            rowWidth: rowWidth
+            rowWidth: listWidth
         )
         .padding(.vertical, 1)
     }
@@ -252,6 +277,6 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                 guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
                 dropTargetIndex = value ? index : nil
             }
-            .offset(y: isOnTop ? -rowSemiHeight : rowSemiHeight)
+            .offset(y: isOnTop ? -rowSemiHeights[0] : rowSemiHeights[index])
     }
 }

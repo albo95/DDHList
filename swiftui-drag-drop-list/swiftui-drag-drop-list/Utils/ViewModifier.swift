@@ -184,3 +184,22 @@ extension View {
         ))
     }
 }
+
+struct SizeReader: ViewModifier {
+    var onChange: (CGSize) -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear {
+                            onChange(geo.size)
+                        }
+                        .onChange(of: geo.size) { newSize in
+                            onChange(newSize)
+                        }
+                }
+            )
+    }
+}

@@ -13,3 +13,10 @@ extension View {
         self.modifier(SwipeToDeleteModifier(onDelete: onDelete, isActive: isActive, isSwiped: isSwiped))
     }
 }
+
+extension View {
+    func readSize(_ onChange: @escaping (CGSize) -> Void) -> some View {
+        self.modifier(SizeReader(onChange: onChange))
+    }
+}
+
