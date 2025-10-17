@@ -28,6 +28,9 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     @State private var currentlyDraggedIndex: Int? = nil
     @State private var currentlyDraggedItem: ItemType? = nil
     @State private var lastDraggedItem: ItemType? = nil
+    @State private var isScrollDisabled: Bool = true
+    @State private var totalTranslationWidth: CGFloat = 0
+    @State private var totalTranslationHeight: CGFloat = 0
     
     private init(
         items: [ItemType],
@@ -175,6 +178,16 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                 }
             }.padding(.top, .separatorHooverHeight)
         }
+        .scrollDisabled(isScrollDisabled)
+        .simultaneousGesture(DragGesture().onChanged { gesture in
+            totalTranslationWidth += abs(gesture.translation.width)
+            totalTranslationHeight += abs(gesture.translation.height)
+            isScrollDisabled = totalTranslationWidth > totalTranslationHeight
+        }.onEnded {_ in
+            isScrollDisabled = false
+            totalTranslationWidth = 0
+            totalTranslationHeight = 0
+        })
     }
     
     private func onDrag(index: Int) {
