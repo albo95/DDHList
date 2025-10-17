@@ -31,6 +31,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     @State private var isScrollDisabled: Bool = true
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
+    @State private var hideCurrentItem: Bool = false
     
     private init(
         items: [ItemType],
@@ -203,6 +204,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         dropTargetIndex = nil
         currentlyDraggedIndex = nil
         currentlyDraggedItem = nil
+        hideCurrentItem = false
     }
     
     // MARK: - Row Wrapper
@@ -213,6 +215,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             currentlySwipedRow: $currentlySwipedRow,
             currentlyDraggedItem: $currentlyDraggedItem,
             lastDraggedItem: $lastDraggedItem,
+            hideCurrentItem: $hideCurrentItem,
             isDeletionEnable: isDeleteRowEnabled,
             onDelete: { onDelete(index) },
             content: rowView,
@@ -245,6 +248,9 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                 }
                 return true
             } isTargeted: { value in
+                if !hideCurrentItem {
+                    hideCurrentItem = true
+                }
                 guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
                 dropTargetIndex = value ? index : nil
             }

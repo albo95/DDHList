@@ -14,6 +14,7 @@ struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
     @Binding var currentlySwipedRow: Int?
     @Binding var currentlyDraggedItem: ItemType?
     @Binding var lastDraggedItem: ItemType?
+    @Binding var hideCurrentItem: Bool
     let isDeletionEnable: Bool
     let onDelete: () -> Void
     let content: (ItemType) -> Content
@@ -48,7 +49,7 @@ struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
                         }
                     )
                 )
-                .opacity(currentlyDraggedItem?.id == item.id ? 0.2 : 1)
+                .opacity((currentlyDraggedItem?.id == item.id && hideCurrentItem) ? 0.2 : 1)
                 .conditionalDraggable(
                     item,
                     isEnabled: isDragAndDropEnabled,
@@ -82,6 +83,9 @@ struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
                     return false
                     
                 } isTargeted: { value in
+                    if !hideCurrentItem {
+                        hideCurrentItem = true
+                    }
                     guard canBeDraggedOn, currentlyDraggedItem?.id != item.id else { return }
                     isTargeted = value
                 }
