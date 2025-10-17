@@ -257,7 +257,3 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
             .offset(y: isOnTop ? -rowSemiHeight : rowSemiHeight)
     }
 }
-
-#Preview {
-    DragAndDropHierarchicalListView()
-}

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct ContentView: View {
-    @State private var items = FileItemExample.mockItems
+    @State private var items = HierarchicalFileItemExample.mockItems
     @State private var selectedVariant = 0
 
     private let variants = [
@@ -35,25 +35,25 @@ struct ContentView: View {
             Group {
                 switch selectedVariant {
                 case 0: // Delete only
-                    DragAndDropListView(
+                    DragAndDropHierarchicalListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         }
                     )
                 case 1: // Drag on separator only
-                    DragAndDropListView(
+                    DragAndDropHierarchicalListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
                             print("Dropped \(dragged.name) between \(above) and \(below)")
                         }
                     )
                 case 2: // Drag on separator + other item
-                    DragAndDropListView(
+                    DragAndDropHierarchicalListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
                             print("Dropped \(dragged.name) between \(above) and \(below)")
                         },
@@ -62,9 +62,9 @@ struct ContentView: View {
                         }
                     )
                 case 3: // Delete + Drag on separator
-                    DragAndDropListView(
+                    DragAndDropHierarchicalListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         },
@@ -73,9 +73,9 @@ struct ContentView: View {
                         }
                     )
                 case 4: // Delete + Drag on separator + other item
-                    DragAndDropListView(
+                    DragAndDropHierarchicalListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         },
