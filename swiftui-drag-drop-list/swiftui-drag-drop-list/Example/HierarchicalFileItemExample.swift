@@ -9,11 +9,11 @@ import Foundation
 import CoreTransferable
 import UniformTypeIdentifiers
 
-struct HierarchicalFileItemExample: ItemHierarchicalType, Hashable, Codable {
+struct HierarchicalFileItemExample: HierarchicalItemType, Hashable, Codable {
     let name: String
     var id: String { name }
     
-    var children: [HierarchicalFileItemExample] = []
+    var childrens: [HierarchicalFileItemExample] = []
     
     static var transferRepresentation: some TransferRepresentation {
         CodableRepresentation(contentType: .json)
@@ -26,17 +26,17 @@ extension HierarchicalFileItemExample {
     static let mockItems: [HierarchicalFileItemExample] = [
         HierarchicalFileItemExample(
             name: "Documents",
-            children: [
+            childrens: [
                 HierarchicalFileItemExample(name: "Resume.pdf"),
                 HierarchicalFileItemExample(name: "CoverLetter.docx"),
                 HierarchicalFileItemExample(
                     name: "Projects",
-                    children: [
+                    childrens: [
                         HierarchicalFileItemExample(name: "ProjectA"),
                         HierarchicalFileItemExample(name: "ProjectB"),
                         HierarchicalFileItemExample(
                             name: "OldProjects",
-                            children: [
+                            childrens: [
                                 HierarchicalFileItemExample(name: "ProjectX"),
                                 HierarchicalFileItemExample(name: "ProjectY")
                             ]
@@ -47,12 +47,12 @@ extension HierarchicalFileItemExample {
         ),
         HierarchicalFileItemExample(
             name: "Pictures",
-            children: [
+            childrens: [
                 HierarchicalFileItemExample(name: "Vacation"),
                 HierarchicalFileItemExample(name: "Family"),
                 HierarchicalFileItemExample(
                     name: "Work",
-                    children: [
+                    childrens: [
                         HierarchicalFileItemExample(name: "Conference"),
                         HierarchicalFileItemExample(name: "TeamBuilding")
                     ]
@@ -61,7 +61,7 @@ extension HierarchicalFileItemExample {
         ),
         HierarchicalFileItemExample(
             name: "Music",
-            children: [
+            childrens: [
                 HierarchicalFileItemExample(name: "Rock"),
                 HierarchicalFileItemExample(name: "Jazz"),
                 HierarchicalFileItemExample(name: "Classical")

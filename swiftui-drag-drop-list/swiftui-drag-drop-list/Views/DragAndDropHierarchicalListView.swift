@@ -1,31 +1,31 @@
 //
 //  DragAndDropHierarchicalListView.swift
-//  swiftui-drag-drop-list
+//  ProveDragAndDropSezioni
 //
-//  Created by Alberto Bruno on 17/10/25.
+//  Created by Alberto Bruno on 16/10/25.
 //
 
+import Foundation
 import SwiftUI
+import CoreTransferable
 
-protocol ItemHierarchicalType: Transferable & Identifiable {
-    var children: [Self] { get set }
+protocol HierarchicalItemType: Transferable & Identifiable {
+    var childrens: [Self] { get set }
 }
 
-struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: View>: View {
+struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: View>: View {
     var items: [ItemType]
     let rowView: (ItemType) -> RowView
     let isDeleteRowEnabled: Bool
     let onDelete: (Int) -> Void
     let isDragAndDropEnabled: Bool
-    let onItemDroppedOnSeparator: (_ draggedItem: ItemType, _ aboveItem: ItemType, _ belowItem: ItemType) -> Void
+    let onItemDroppedOnSeparator: (ItemType, ItemType, ItemType) -> Void
     let isDragAndDropOnOtherItemsEnabled: Bool
-    let onItemDroppedOnOtherItem: (_ draggedItem: ItemType, _ targetItem: ItemType) -> Void
+    let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
     
     @State private var dragTargetIndex: Int? = nil
     @State private var dropTargetIndex: Int? = nil
-    @State private var rowSemiHeight: CGFloat = 0
-    @State private var rowWidth: CGFloat = 0
     @State private var currentlySwipedRow: Int? = nil
     @State private var currentlyDraggedIndex: Int? = nil
     @State private var currentlyDraggedItem: ItemType? = nil
@@ -34,6 +34,8 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
     @State private var hideCurrentItem: Bool = false
+    @State private var rowSemiHeights: [CGFloat]
+    @State private var listWidth: CGFloat = 0
     
     private init(
         items: [ItemType],
@@ -41,9 +43,16 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
         isDeleteRowEnabled: Bool = true,
         onDelete: @escaping (Int) -> Void = { _ in },
         isDragAndDropEnabled: Bool = true,
-        onItemDroppedOnSeparator: @escaping (_ draggedItem: ItemType, _ aboveItem: ItemType, _ belowItem: ItemType) -> Void = { _, _, _ in },
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveItem: ItemType,
+            _ belowItem: ItemType
+        ) -> Void = { _, _, _ in },
         isDragAndDropOnOtherItemsEnabled: Bool = true,
-        onItemDroppedOnOtherItem: @escaping (_ draggedItem: ItemType, _ targetItem: ItemType) -> Void = { _, _ in },
+        onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+        ) -> Void = { _, _ in },
         colorOnHover: Color = .blue
     ) {
         self.items = items
@@ -55,13 +64,14 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
         self.isDragAndDropOnOtherItemsEnabled = isDragAndDropOnOtherItemsEnabled
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.colorOnHover = colorOnHover
+        self.rowSemiHeights = Array(repeating: 0, count: items.count)
     }
     
     // MARK: - Convenience initializers
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (_ index: Int) -> Void,
+        onDelete: @escaping (Int) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -78,7 +88,11 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onItemDroppedOnSeparator: @escaping (_ draggedItem: ItemType, _ aboveItem: ItemType, _ belowItem: ItemType) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveItem: ItemType,
+            _ belowItem: ItemType
+        ) -> Void = { _, _, _ in },
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -94,8 +108,15 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onItemDroppedOnSeparator: @escaping (_ draggedItem: ItemType, _ aboveItem: ItemType, _ belowItem: ItemType) -> Void,
-        onItemDroppedOnOtherItem: @escaping (_ draggedItem: ItemType, _ targetItem: ItemType) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveItem: ItemType,
+            _ belowItem: ItemType
+        ) -> Void = { _, _, _ in },
+        onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+        ) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -111,8 +132,12 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (_ index: Int) -> Void,
-        onItemDroppedOnSeparator: @escaping (_ draggedItem: ItemType, _ aboveItem: ItemType, _ belowItem: ItemType) -> Void,
+        onDelete: @escaping (Int) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveItem: ItemType,
+            _ belowItem: ItemType
+        ) -> Void = { _, _, _ in },
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -129,9 +154,16 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (_ index: Int) -> Void,
-        onItemDroppedOnSeparator: @escaping (_ draggedItem: ItemType, _ aboveItem: ItemType, _ belowItem: ItemType) -> Void,
-        onItemDroppedOnOtherItem: @escaping (_ draggedItem: ItemType, _ targetItem: ItemType) -> Void,
+        onDelete: @escaping (Int) -> Void,
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveItem: ItemType,
+            _ belowItem: ItemType
+        ) -> Void = { _, _, _ in },
+        onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+        ) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -147,46 +179,54 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
-                if let first = items.first {
-                    ZStack {
-                        separatorView(index: -1, isOnTop: true, onDrop: resetDragging)
-                            .zIndex(10)
-                        
-                        rowWrapper(for: first, index: 0)
-                            .readSize{ size  in
-                                rowSemiHeight = size.height / 2
-                                rowWidth = size.width
-                            }
-                            .zIndex(0)
-                        
-                        
-                        separatorView(index: 0)
-                            .zIndex(1)
-                    }
-                }
-                
-                ForEach(items.indices.dropFirst(), id: \.self) { index in
-                    ZStack {
-                        rowWrapper(for: items[index], index: index)
-                            .zIndex(0)
-                        
-                        separatorView(index: index, onDrop: resetDragging)
-                            .zIndex(1)
-                    }
-                }
-            }.padding(.top, .separatorHooverHeight)
+            LazyVStack(spacing: 0) {
+                recursiveView(recursiveItems: self.items)
+            }
+            .readSize { size in
+                listWidth = size.width
+            }
+            .padding(.top, .separatorHooverHeight)
         }
         .scrollDisabled(isScrollDisabled)
         .simultaneousGesture(DragGesture().onChanged { gesture in
             totalTranslationWidth += abs(gesture.translation.width)
             totalTranslationHeight += abs(gesture.translation.height)
             isScrollDisabled = totalTranslationWidth > totalTranslationHeight
-        }.onEnded {_ in
-            isScrollDisabled = false
-            totalTranslationWidth = 0
-            totalTranslationHeight = 0
-        })
+        }
+            .onEnded {_ in
+                isScrollDisabled = false
+                totalTranslationWidth = 0
+                totalTranslationHeight = 0
+            })
+    }
+    
+    private func recursiveView(recursiveItems: [ItemType]) -> some View {
+        ForEach(recursiveItems.indices, id: \.self) { index in
+            LazyVStack(alignment: .leading, spacing: 0) {
+                rowView(recursiveItems: recursiveItems, item: recursiveItems[index], recursiveIndex: index)
+                if !recursiveItems[index].childrens.isEmpty {
+                    AnyView(recursiveView(recursiveItems: recursiveItems[index].childrens))
+                }
+            }
+        }
+    }
+    
+    private func rowView(recursiveItems: [ItemType], item: ItemType, recursiveIndex: Int) -> some View {
+        ZStack {
+            if recursiveIndex == 0 {
+                separatorView(index: -1, isOnTop: true, onDrop: resetDragging)
+                    .zIndex(1)
+            }
+            
+            rowWrapper(for: recursiveItems[recursiveIndex], index: recursiveIndex)
+                .zIndex(0)
+                .readSize { size in
+                    rowSemiHeights[recursiveIndex] = size.height / 2
+                }
+            
+            separatorView(index: recursiveIndex, onDrop: resetDragging)
+                .zIndex(1)
+        }
     }
     
     private func onDrag(index: Int) {
@@ -225,7 +265,7 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
             onDrop: resetDragging,
             canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
             isDragAndDropEnabled: isDragAndDropEnabled,
-            rowWidth: rowWidth
+            rowWidth: listWidth
         )
         .padding(.vertical, 1)
     }
@@ -237,21 +277,19 @@ struct DragAndDropHierarchicalListView<ItemType: ItemHierarchicalType, RowView: 
                 defer {
                     onDrop()
                 }
-                
                 lastDraggedItem = draggedItem.first
                 
                 let above = index
                 let below = index + 1 < items.count ? index + 1 : index
                 if let firstDraggedItem = draggedItem.first {
-                   //onItemDroppedOnSeparator(firstDraggedItem, above, below)
+                    //onItemDroppedOnSeparator(firstDraggedItem, above, below)
                 }
-                
                 return true
             } isTargeted: { value in
                 hideCurrentItem = true
                 guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
                 dropTargetIndex = value ? index : nil
             }
-            .offset(y: isOnTop ? -rowSemiHeight : rowSemiHeight)
+            .offset(y: isOnTop ? -rowSemiHeights[0] : rowSemiHeights[index])
     }
 }
