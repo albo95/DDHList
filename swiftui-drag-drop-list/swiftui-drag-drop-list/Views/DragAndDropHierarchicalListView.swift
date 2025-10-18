@@ -226,17 +226,6 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         ForEach(recursiveItems.indices, id: \.self) { index in
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Button(action: {
-                        withAnimation {
-                            itemsExpandInfo[recursiveItems[index].id]?.toggle()
-                        }
-                    }, label: {
-                        Image(systemName: "chevron.down")
-                            .rotationEffect(Angle(degrees:
-                                                    itemsExpandInfo[recursiveItems[index].id] == true ? 0 : -90))
-                    })
-                    .opacity(recursiveItems[index].childrens.isEmpty ? 0 : 1)
-                    
                     rowView(
                         recursiveItems: recursiveItems,
                         item: recursiveItems[index],
@@ -249,7 +238,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                         recursiveItems: recursiveItems[index].childrens,
                         path: path + [index],
                     ))
-                    .padding(.leading, 40)
+                    .padding(.leading, 30)
                 }
             }
         }
@@ -261,17 +250,29 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                 separatorView(
                     recursiveItems: recursiveItems,
                     path: path.withLast(-1),
-                    isOnTop: true,
                     onDrop: resetDragging
                 ).zIndex(1)
             }
             
             if let lastPathElement = path.last {
-                rowWrapper(for: recursiveItems[lastPathElement], path: path)
-                    .zIndex(0)
-                    .readSize { size in
-                        rowSemiHeights[path] = size.height / 2
-                    }
+                HStack {
+                    Button(action: {
+                        withAnimation {
+                            itemsExpandInfo[item.id]?.toggle()
+                        }
+                    }, label: {
+                        Image(systemName: "chevron.down")
+                            .rotationEffect(Angle(degrees:
+                                                    itemsExpandInfo[item.id] == true ? 0 : -90))
+                    })
+                    .opacity(item.childrens.isEmpty ? 0 : 1)
+                    
+                    rowWrapper(for: recursiveItems[lastPathElement], path: path)
+                        .zIndex(0)
+                        .readSize { size in
+                            rowSemiHeights[path] = size.height / 2
+                        }
+                }
                 
                 separatorView(
                     recursiveItems: recursiveItems,
@@ -326,7 +327,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     }
     
     // MARK: - Separator View
-    private func separatorView(recursiveItems: [ItemType], path: [Int], isOnTop: Bool = false, onDrop: @escaping () -> Void = {})-> some View {
+    private func separatorView(recursiveItems: [ItemType], path: [Int], onDrop: @escaping () -> Void = {})-> some View {
         
         SeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
             .dropDestination(for: ItemType.self) { draggedItem, location in
@@ -361,7 +362,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                 guard currentlyDraggedPath != path, currentlyDraggedPath != path.incrementLast() else { return }
                 dropTargetPath = value ? path : []
             }
-            .offset(y: (isOnTop ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
+            .offset(y: (path.last == -1 ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
     }
     
     private func getItemsOpenInfo(items: [ItemType]) -> [ItemID: Bool] {

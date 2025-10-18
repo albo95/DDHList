@@ -46,13 +46,13 @@ struct HierarchicalDragDropListExampleView: View {
                     DragAndDropHierarchicalListView(
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
-                        onItemDroppedOnSeparator: { dragged, above, below in
-                            if let above, let below {
-                                print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
-                            } else if let above {
-                                print("Dropped \(dragged.name) after \(above.name) ")
-                            } else if let below {
-                                print("Dropped \(dragged.name) before \(below.name)")
+                        onItemDroppedOnSeparator: { draggedItem, aboveItem, belowItem in
+                            if let aboveItem, let belowItem {
+                                print("Dropped \(draggedItem.name) between \(aboveItem.name) and \(belowItem.name)")
+                            } else if let belowItem {
+                                print("Dropped \(draggedItem.name) above \(belowItem.name) ")
+                            } else if let aboveItem {
+                                print("Dropped \(draggedItem.name) below \(aboveItem.name)")
                             }
                         }
                     )
@@ -60,13 +60,13 @@ struct HierarchicalDragDropListExampleView: View {
                     DragAndDropHierarchicalListView(
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
-                        onItemDroppedOnSeparator: { dragged, above, below in
-                            if let above, let below {
-                                print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
-                            } else if let above {
-                                print("Dropped \(dragged.name) after \(above.name) ")
-                            } else if let below {
-                                print("Dropped \(dragged.name) before \(below.name)")
+                        onItemDroppedOnSeparator: { draggedItem, aboveItem, belowItem in
+                            if let aboveItem, let belowItem {
+                                print("Dropped \(draggedItem.name) between \(aboveItem.name) and \(belowItem.name)")
+                            } else if let belowItem {
+                                print("Dropped \(draggedItem.name) above \(belowItem.name) ")
+                            } else if let aboveItem {
+                                print("Dropped \(draggedItem.name) below \(aboveItem.name)")
                             }
                         },
                         onItemDroppedOnOtherItem: { dragged, target in
@@ -80,13 +80,13 @@ struct HierarchicalDragDropListExampleView: View {
                         onDelete: { item in
                             print("Delete \(item.name)")
                         },
-                        onItemDroppedOnSeparator: { dragged, above, below in
-                            if let above, let below {
-                                print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
-                            } else if let above {
-                                print("Dropped \(dragged.name) after \(above.name) ")
-                            } else if let below {
-                                print("Dropped \(dragged.name) before \(below.name)")
+                        onItemDroppedOnSeparator: { draggedItem, aboveItem, belowItem in
+                            if let aboveItem, let belowItem {
+                                print("Dropped \(draggedItem.name) between \(aboveItem.name) and \(belowItem.name)")
+                            } else if let belowItem {
+                                print("Dropped \(draggedItem.name) above \(belowItem.name) ")
+                            } else if let aboveItem {
+                                print("Dropped \(draggedItem.name) below \(aboveItem.name)")
                             }
                         }
                     )
@@ -97,13 +97,13 @@ struct HierarchicalDragDropListExampleView: View {
                         onDelete: { item in
                             print("Delete \(item.name)")
                         },
-                        onItemDroppedOnSeparator: { dragged, above, below in
-                            if let above, let below {
-                                print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
-                            } else if let above {
-                                print("Dropped \(dragged.name) after \(above.name) ")
-                            } else if let below {
-                                print("Dropped \(dragged.name) before \(below.name)")
+                        onItemDroppedOnSeparator: { draggedItem, aboveItem, belowItem in
+                            if let aboveItem, let belowItem {
+                                print("Dropped \(draggedItem.name) between \(aboveItem.name) and \(belowItem.name)")
+                            } else if let belowItem {
+                                print("Dropped \(draggedItem.name) above \(belowItem.name) ")
+                            } else if let aboveItem {
+                                print("Dropped \(draggedItem.name) below \(aboveItem.name)")
                             }
                         },
                         onItemDroppedOnOtherItem: { dragged, target in
@@ -120,4 +120,8 @@ struct HierarchicalDragDropListExampleView: View {
             Spacer()
         }
     }
+}
+
+#Preview {
+    HierarchicalDragDropListExampleView()
 }
