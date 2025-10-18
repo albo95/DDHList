@@ -38,8 +38,8 @@ struct HierarchicalDragDropListExampleView: View {
                     DragAndDropHierarchicalListView(
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
-                        onDelete: { index in
-                            print("Delete at \(index)")
+                        onDelete: { item in
+                            print("Delete \(item.name)")
                         }
                     )
                 case 1: // Drag on separator only
@@ -47,7 +47,7 @@ struct HierarchicalDragDropListExampleView: View {
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
-                            print("Dropped \(dragged.name) between \(above) and \(below)")
+                            print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
                         }
                     )
                 case 2: // Drag on separator + other item
@@ -55,7 +55,7 @@ struct HierarchicalDragDropListExampleView: View {
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
-                            print("Dropped \(dragged.name) between \(above) and \(below)")
+                            print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
                         },
                         onItemDroppedOnOtherItem: { dragged, target in
                             print("Dropped \(dragged.name) on \(target.name)")
@@ -65,22 +65,22 @@ struct HierarchicalDragDropListExampleView: View {
                     DragAndDropHierarchicalListView(
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
-                        onDelete: { index in
-                            print("Delete at \(index)")
+                        onDelete: { item in
+                            print("Delete \(item.name)")
                         },
                         onItemDroppedOnSeparator: { dragged, above, below in
-                            print("Dropped \(dragged.name) between \(above) and \(below)")
+                            print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
                         }
                     )
                 case 4: // Delete + Drag on separator + other item
                     DragAndDropHierarchicalListView(
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
-                        onDelete: { index in
-                            print("Delete at \(index)")
+                        onDelete: { item in
+                            print("Delete \(item.name)")
                         },
                         onItemDroppedOnSeparator: { dragged, above, below in
-                            print("Dropped \(dragged.name) between \(above) and \(below)")
+                            print("Dropped \(dragged.name) between \(above.name) and \(below.name)")
                         },
                         onItemDroppedOnOtherItem: { dragged, target in
                             print("Dropped \(dragged.name) on \(target.name)")

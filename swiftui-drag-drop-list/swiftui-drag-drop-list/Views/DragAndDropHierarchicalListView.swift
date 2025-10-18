@@ -200,21 +200,33 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             })
     }
     
-    private func recursiveView(recursiveItems: [ItemType], path: [Int] = [], showTopSeparator: Bool = true) -> some View {
+    private func recursiveView(
+        recursiveItems: [ItemType],
+        path: [Int] = [],
+        showTopSeparator: Bool = true
+    ) -> some View {
         ForEach(recursiveItems.indices, id: \.self) { index in
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    
                     if !recursiveItems[index].childrens.isEmpty {
                         Image(systemName: "chevron.down")
                     }
                     
-                    rowView(recursiveItems: recursiveItems, item: recursiveItems[index], path: path.addingLast(index), showTopSeparator: showTopSeparator)
+                    rowView(
+                        recursiveItems: recursiveItems,
+                        item: recursiveItems[index],
+                        path: path + [index],
+                        showTopSeparator: showTopSeparator
+                    )
                 }
                 
                 if !recursiveItems[index].childrens.isEmpty {
-                    AnyView(recursiveView(recursiveItems: recursiveItems[index].childrens, showTopSeparator: false))
-                        .padding(.leading, 20)
+                    AnyView(recursiveView(
+                        recursiveItems: recursiveItems[index].childrens,
+                        path: path + [index],
+                        showTopSeparator: false
+                    ))
+                    .padding(.leading, 20)
                 }
             }
         }
@@ -222,7 +234,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     private func rowView(recursiveItems: [ItemType], item: ItemType, path: [Int], showTopSeparator: Bool = true) -> some View {
         ZStack {
-            if path.first == 0, showTopSeparator {
+            if path.first == 1, showTopSeparator {
                 separatorView(
                     belowItem: recursiveItems[0],
                     path: path.withLast(-1),
@@ -239,7 +251,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                     }
                 
                 let belowItem = lastPathElement + 1 < recursiveItems.count ? recursiveItems[lastPathElement + 1] : nil
-
+                
                 separatorView(
                     aboveItem: recursiveItems[lastPathElement],
                     belowItem: belowItem,
@@ -268,27 +280,29 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     // MARK: - Row Wrapper
     private func rowWrapper(for item: ItemType, path: [Int]) -> some View {
-        HierarchicalRowWrapper(
-            path: path,
-            item: item,
-            currentlySwipedRowPath: $currentlySwipedRowPath,
-            currentlyDraggedItem: $currentlyDraggedItem,
-            lastDraggedItem: $lastDraggedItem,
-            hideCurrentItem: $hideCurrentItem,
-            isDeletionEnable: isDeleteRowEnabled,
-            onDelete: { onDelete(item) },
-            content: rowView,
-            onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            colorOnHover: colorOnHover,
-            onDrag: {
-                onDrag(path: path)
-            },
-            onDrop: resetDragging,
-            canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
-            isDragAndDropEnabled: isDragAndDropEnabled,
-            rowWidth: listWidth
-        )
-        .padding(.vertical, 1)
+        HStack {
+            HierarchicalRowWrapper(
+                path: path,
+                item: item,
+                currentlySwipedRowPath: $currentlySwipedRowPath,
+                currentlyDraggedItem: $currentlyDraggedItem,
+                lastDraggedItem: $lastDraggedItem,
+                hideCurrentItem: $hideCurrentItem,
+                isDeletionEnable: isDeleteRowEnabled,
+                onDelete: { onDelete(item) },
+                content: rowView,
+                onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
+                colorOnHover: colorOnHover,
+                onDrag: {
+                    onDrag(path: path)
+                },
+                onDrop: resetDragging,
+                canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
+                isDragAndDropEnabled: isDragAndDropEnabled,
+                rowWidth: listWidth
+            )
+            .padding(.vertical, 1)
+        }
     }
     
     // MARK: - Separator View
@@ -309,7 +323,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             } isTargeted: { value in
                 hideCurrentItem = true
                 guard currentlyDraggedPath != path, currentlyDraggedPath != path.incrementLast() else { return }
-                    dropTargetPath = value ? path : []
+                dropTargetPath = value ? path : []
             }
             .offset(y: (isOnTop ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
     }
