@@ -17,31 +17,31 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     var items: [ItemType]
     let rowView: (ItemType) -> RowView
     let isDeleteRowEnabled: Bool
-    let onDelete: (Int) -> Void
+    let onDelete: (ItemType) -> Void
     let isDragAndDropEnabled: Bool
     let onItemDroppedOnSeparator: (ItemType, ItemType, ItemType) -> Void
     let isDragAndDropOnOtherItemsEnabled: Bool
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
     
-    @State private var dragTargetIndex: Int? = nil
-    @State private var dropTargetIndex: Int? = nil
-    @State private var currentlySwipedRow: Int? = nil
-    @State private var currentlyDraggedIndex: Int? = nil
+    @State private var dragTargetPath: [Int] = []
+    @State private var dropTargetPath: [Int] = []
+    @State private var currentlySwipedRowPath: [Int] = []
+    @State private var currentlyDraggedPath: [Int] = []
     @State private var currentlyDraggedItem: ItemType? = nil
     @State private var lastDraggedItem: ItemType? = nil
     @State private var isScrollDisabled: Bool = true
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
     @State private var hideCurrentItem: Bool = false
-    @State private var rowSemiHeights: [CGFloat]
+    @State private var rowSemiHeights: [[Int] : CGFloat]
     @State private var listWidth: CGFloat = 0
     
     private init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
         isDeleteRowEnabled: Bool = true,
-        onDelete: @escaping (Int) -> Void = { _ in },
+        onDelete: @escaping (ItemType) -> Void = { _ in },
         isDragAndDropEnabled: Bool = true,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
@@ -64,14 +64,14 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         self.isDragAndDropOnOtherItemsEnabled = isDragAndDropOnOtherItemsEnabled
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.colorOnHover = colorOnHover
-        self.rowSemiHeights = Array(repeating: 0, count: items.count)
+        self.rowSemiHeights = [[]:0]
     }
     
     // MARK: - Convenience initializers
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (Int) -> Void,
+        onDelete: @escaping (ItemType) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
@@ -132,7 +132,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (Int) -> Void,
+        onDelete: @escaping (ItemType) -> Void,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
             _ aboveItem: ItemType,
@@ -154,7 +154,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (Int) -> Void,
+        onDelete: @escaping (ItemType) -> Void,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
             _ aboveItem: ItemType,
@@ -179,7 +179,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            VStack(spacing: 0) {
                 recursiveView(recursiveItems: self.items)
             }
             .readSize { size in
@@ -200,67 +200,88 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             })
     }
     
-    private func recursiveView(recursiveItems: [ItemType]) -> some View {
+    private func recursiveView(recursiveItems: [ItemType], path: [Int] = [], showTopSeparator: Bool = true) -> some View {
         ForEach(recursiveItems.indices, id: \.self) { index in
-            LazyVStack(alignment: .leading, spacing: 0) {
-                rowView(recursiveItems: recursiveItems, item: recursiveItems[index], recursiveIndex: index)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    
+                    if !recursiveItems[index].childrens.isEmpty {
+                        Image(systemName: "chevron.down")
+                    }
+                    
+                    rowView(recursiveItems: recursiveItems, item: recursiveItems[index], path: path.addingLast(index), showTopSeparator: showTopSeparator)
+                }
+                
                 if !recursiveItems[index].childrens.isEmpty {
-                    AnyView(recursiveView(recursiveItems: recursiveItems[index].childrens))
+                    AnyView(recursiveView(recursiveItems: recursiveItems[index].childrens, showTopSeparator: false))
+                        .padding(.leading, 20)
                 }
             }
         }
     }
     
-    private func rowView(recursiveItems: [ItemType], item: ItemType, recursiveIndex: Int) -> some View {
+    private func rowView(recursiveItems: [ItemType], item: ItemType, path: [Int], showTopSeparator: Bool = true) -> some View {
         ZStack {
-            if recursiveIndex == 0 {
-                separatorView(index: -1, isOnTop: true, onDrop: resetDragging)
-                    .zIndex(1)
+            if path.first == 0, showTopSeparator {
+                separatorView(
+                    belowItem: recursiveItems[0],
+                    path: path.withLast(-1),
+                    isOnTop: true,
+                    onDrop: resetDragging
+                ).zIndex(1)
             }
             
-            rowWrapper(for: recursiveItems[recursiveIndex], index: recursiveIndex)
-                .zIndex(0)
-                .readSize { size in
-                    rowSemiHeights[recursiveIndex] = size.height / 2
-                }
-            
-            separatorView(index: recursiveIndex, onDrop: resetDragging)
-                .zIndex(1)
+            if let lastPathElement = path.last {
+                rowWrapper(for: recursiveItems[lastPathElement], path: path)
+                    .zIndex(0)
+                    .readSize { size in
+                        rowSemiHeights[path] = size.height / 2
+                    }
+                
+                let belowItem = lastPathElement + 1 < recursiveItems.count ? recursiveItems[lastPathElement + 1] : nil
+
+                separatorView(
+                    aboveItem: recursiveItems[lastPathElement],
+                    belowItem: belowItem,
+                    path: path,
+                    onDrop: resetDragging
+                ).zIndex(1)
+            }
         }
     }
     
-    private func onDrag(index: Int) {
+    private func onDrag(path: [Int]) {
         resetSwiping()
-        currentlyDraggedIndex = index
+        currentlyDraggedPath = path
     }
     
     private func resetSwiping() {
-        currentlySwipedRow = nil
+        currentlySwipedRowPath = []
     }
     
     private func resetDragging() {
-        dropTargetIndex = nil
-        currentlyDraggedIndex = nil
+        currentlyDraggedPath = []
+        currentlyDraggedPath = []
         currentlyDraggedItem = nil
         hideCurrentItem = false
     }
     
     // MARK: - Row Wrapper
-    private func rowWrapper(for item: ItemType, index: Int) -> some View {
-        RowWrapper(
-            index: index,
+    private func rowWrapper(for item: ItemType, path: [Int]) -> some View {
+        HierarchicalRowWrapper(
+            path: path,
             item: item,
-            currentlySwipedRow: $currentlySwipedRow,
+            currentlySwipedRowPath: $currentlySwipedRowPath,
             currentlyDraggedItem: $currentlyDraggedItem,
             lastDraggedItem: $lastDraggedItem,
             hideCurrentItem: $hideCurrentItem,
             isDeletionEnable: isDeleteRowEnabled,
-            onDelete: { onDelete(index) },
+            onDelete: { onDelete(item) },
             content: rowView,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
             colorOnHover: colorOnHover,
             onDrag: {
-                onDrag(index: index)
+                onDrag(path: path)
             },
             onDrop: resetDragging,
             canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
@@ -271,25 +292,25 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     }
     
     // MARK: - Separator View
-    private func separatorView(index: Int, isOnTop: Bool = false, onDrop: @escaping () -> Void = {})-> some View {
-        SeparatorView(isTargeted: dropTargetIndex == index, isHidden: false)
+    private func separatorView(aboveItem: ItemType? = nil, belowItem: ItemType? = nil, path: [Int], isOnTop: Bool = false, onDrop: @escaping () -> Void = {})-> some View {
+        
+        SeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
             .dropDestination(for: ItemType.self) { draggedItem, location in
                 defer {
                     onDrop()
                 }
                 lastDraggedItem = draggedItem.first
                 
-                let above = index
-                let below = index + 1 < items.count ? index + 1 : index
-                if let firstDraggedItem = draggedItem.first {
-                    //onItemDroppedOnSeparator(firstDraggedItem, above, below)
+                if let firstDraggedItem = draggedItem.first, let aboveItem, let belowItem {
+                    onItemDroppedOnSeparator(firstDraggedItem, aboveItem, belowItem)
                 }
+                
                 return true
             } isTargeted: { value in
                 hideCurrentItem = true
-                guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
-                dropTargetIndex = value ? index : nil
+                guard currentlyDraggedPath != path, currentlyDraggedPath != path.incrementLast() else { return }
+                    dropTargetPath = value ? path : []
             }
-            .offset(y: isOnTop ? -rowSemiHeights[0] : rowSemiHeights[index])
+            .offset(y: (isOnTop ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
     }
 }

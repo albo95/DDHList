@@ -148,6 +148,7 @@ struct ConditionalDraggableModifier<ItemType: Transferable & Identifiable>: View
                                     Rectangle()
                                         .frame(width: rowWidth)
                                         .foregroundStyle(.customInvertedPrimary)
+                                        .scaleEffect(6)
                                     
                                     previewView
                                 }
