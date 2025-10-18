@@ -9,21 +9,25 @@ import Foundation
 import SwiftUI
 import CoreTransferable
 
-protocol HierarchicalItemType: Transferable & Identifiable {
+protocol HierarchicalItemType: Transferable & Identifiable & Hashable {
     var childrens: [Self] { get set }
 }
 
 struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: View>: View {
-    var items: [ItemType]
+    typealias ItemID = ItemType.ID
+    
+    let items: [ItemType]
+    let expandedItemsIDs: [ItemID]
     let rowView: (ItemType) -> RowView
     let isDeleteRowEnabled: Bool
     let onDelete: (ItemType) -> Void
     let isDragAndDropEnabled: Bool
-    let onItemDroppedOnSeparator: (ItemType, ItemType, ItemType) -> Void
+    let onItemDroppedOnSeparator: (ItemType, ItemType?, ItemType?) -> Void
     let isDragAndDropOnOtherItemsEnabled: Bool
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
     
+    @State private var itemsExpandInfo: [ItemID: Bool]
     @State private var dragTargetPath: [Int] = []
     @State private var dropTargetPath: [Int] = []
     @State private var currentlySwipedRowPath: [Int] = []
@@ -39,14 +43,15 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     private init(
         items: [ItemType],
+        expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         isDeleteRowEnabled: Bool = true,
         onDelete: @escaping (ItemType) -> Void = { _ in },
         isDragAndDropEnabled: Bool = true,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
-            _ aboveItem: ItemType,
-            _ belowItem: ItemType
+            _ aboveItem: ItemType?,
+            _ belowItem: ItemType?
         ) -> Void = { _, _, _ in },
         isDragAndDropOnOtherItemsEnabled: Bool = true,
         onItemDroppedOnOtherItem: @escaping (
@@ -56,6 +61,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         colorOnHover: Color = .blue
     ) {
         self.items = items
+        self.expandedItemsIDs = expandedItemsIDs
         self.rowView = rowView
         self.isDeleteRowEnabled = isDeleteRowEnabled
         self.onDelete = onDelete
@@ -65,17 +71,21 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.colorOnHover = colorOnHover
         self.rowSemiHeights = [[]:0]
+        self._itemsExpandInfo = State(initialValue: [:])
+        self._itemsExpandInfo = State(initialValue: getItemsOpenInfo(items: items))
     }
     
     // MARK: - Convenience initializers
     init(
         items: [ItemType],
+        expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
         colorOnHover: Color = .blue
     ) {
         self.init(
             items: items,
+            expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
@@ -87,16 +97,18 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     init(
         items: [ItemType],
+        expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
-            _ aboveItem: ItemType,
-            _ belowItem: ItemType
+            _ aboveItem: ItemType?,
+            _ belowItem: ItemType?
         ) -> Void = { _, _, _ in },
         colorOnHover: Color = .blue
     ) {
         self.init(
             items: items,
+            expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
             isDeleteRowEnabled: false,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
@@ -107,11 +119,12 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     init(
         items: [ItemType],
+        expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
-            _ aboveItem: ItemType,
-            _ belowItem: ItemType
+            _ aboveItem: ItemType?,
+            _ belowItem: ItemType?
         ) -> Void = { _, _, _ in },
         onItemDroppedOnOtherItem: @escaping (
             _ draggedItem: ItemType,
@@ -121,6 +134,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     ) {
         self.init(
             items: items,
+            expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
             isDeleteRowEnabled: false,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
@@ -131,17 +145,19 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     init(
         items: [ItemType],
+        expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
-            _ aboveItem: ItemType,
-            _ belowItem: ItemType
+            _ aboveItem: ItemType?,
+            _ belowItem: ItemType?
         ) -> Void = { _, _, _ in },
         colorOnHover: Color = .blue
     ) {
         self.init(
             items: items,
+            expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
@@ -153,12 +169,13 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     init(
         items: [ItemType],
+        expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
-            _ aboveItem: ItemType,
-            _ belowItem: ItemType
+            _ aboveItem: ItemType?,
+            _ belowItem: ItemType?
         ) -> Void = { _, _, _ in },
         onItemDroppedOnOtherItem: @escaping (
             _ draggedItem: ItemType,
@@ -168,6 +185,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     ) {
         self.init(
             items: items,
+            expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
@@ -185,7 +203,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             .readSize { size in
                 listWidth = size.width
             }
-            .padding(.top, .separatorHooverHeight)
+            .padding(.vertical, .separatorHooverHeight)
         }
         .scrollDisabled(isScrollDisabled)
         .simultaneousGesture(DragGesture().onChanged { gesture in
@@ -209,22 +227,28 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     if !recursiveItems[index].childrens.isEmpty {
-                        Image(systemName: "chevron.down")
+                        Button(action: {
+                            withAnimation {
+                                itemsExpandInfo[recursiveItems[index].id]?.toggle()
+                            }
+                        }, label: {
+                            Image(systemName: "chevron.down")
+                                .rotationEffect(Angle(degrees:
+                                                        itemsExpandInfo[recursiveItems[index].id] == true ? 0 : -90))
+                        })
                     }
                     
                     rowView(
                         recursiveItems: recursiveItems,
                         item: recursiveItems[index],
-                        path: path + [index],
-                        showTopSeparator: showTopSeparator
+                        path: path + [index]
                     )
                 }
                 
-                if !recursiveItems[index].childrens.isEmpty {
+                if !recursiveItems[index].childrens.isEmpty, itemsExpandInfo[recursiveItems[index].id] == true {
                     AnyView(recursiveView(
                         recursiveItems: recursiveItems[index].childrens,
                         path: path + [index],
-                        showTopSeparator: false
                     ))
                     .padding(.leading, 20)
                 }
@@ -232,11 +256,11 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         }
     }
     
-    private func rowView(recursiveItems: [ItemType], item: ItemType, path: [Int], showTopSeparator: Bool = true) -> some View {
+    private func rowView(recursiveItems: [ItemType], item: ItemType, path: [Int]) -> some View {
         ZStack {
-            if path.first == 1, showTopSeparator {
+            if path.first == 0 {
                 separatorView(
-                    belowItem: recursiveItems[0],
+                    recursiveItems: recursiveItems,
                     path: path.withLast(-1),
                     isOnTop: true,
                     onDrop: resetDragging
@@ -250,11 +274,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                         rowSemiHeights[path] = size.height / 2
                     }
                 
-                let belowItem = lastPathElement + 1 < recursiveItems.count ? recursiveItems[lastPathElement + 1] : nil
-                
                 separatorView(
-                    aboveItem: recursiveItems[lastPathElement],
-                    belowItem: belowItem,
+                    recursiveItems: recursiveItems,
                     path: path,
                     onDrop: resetDragging
                 ).zIndex(1)
@@ -306,16 +327,32 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     }
     
     // MARK: - Separator View
-    private func separatorView(aboveItem: ItemType? = nil, belowItem: ItemType? = nil, path: [Int], isOnTop: Bool = false, onDrop: @escaping () -> Void = {})-> some View {
+    private func separatorView(recursiveItems: [ItemType], path: [Int], isOnTop: Bool = false, onDrop: @escaping () -> Void = {})-> some View {
         
         SeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
             .dropDestination(for: ItemType.self) { draggedItem, location in
                 defer {
                     onDrop()
                 }
+                
                 lastDraggedItem = draggedItem.first
                 
-                if let firstDraggedItem = draggedItem.first, let aboveItem, let belowItem {
+                if let firstDraggedItem = draggedItem.first {
+                    var aboveItem: ItemType? = nil
+                    var belowItem: ItemType? = nil
+                    
+                    if path.last == 0 || path.last == -1 {
+                        aboveItem = nil
+                    } else if let pathLast = path.last, recursiveItems.count > pathLast + 1{
+                        aboveItem = recursiveItems[pathLast - 1]
+                    }
+                    
+                    if path.last == recursiveItems.count - 1 {
+                        belowItem = nil
+                    } else if let pathLast = path.last {
+                        belowItem = recursiveItems[pathLast + 1]
+                    }
+                    
                     onItemDroppedOnSeparator(firstDraggedItem, aboveItem, belowItem)
                 }
                 
@@ -326,5 +363,34 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                 dropTargetPath = value ? path : []
             }
             .offset(y: (isOnTop ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
+    }
+    
+    private func getItemsOpenInfo(items: [ItemType]) -> [ItemID: Bool] {
+        var newExpandInfo: [ItemID: Bool] = [:]
+        
+        func process(items: [ItemType]) {
+            for item in items {
+                newExpandInfo[item.id] = expandedItemsIDs.contains(item.id)
+                if !item.childrens.isEmpty {
+                    process(items: item.childrens)
+                }
+            }
+        }
+        
+        process(items: items)
+        
+        func printExpandInfo(items: [ItemType], indent: String = "") {
+            for item in items {
+                let isExpanded = itemsExpandInfo[item.id] == true
+                print("\(indent)\(isExpanded ? "✅" : "❌") Item \(item.id)")
+                if !item.childrens.isEmpty {
+                    printExpandInfo(items: item.childrens, indent: indent + "    ")
+                }
+            }
+        }
+        
+        print("🗂 Items expand info:")
+        printExpandInfo(items: items)
+        return newExpandInfo
     }
 }

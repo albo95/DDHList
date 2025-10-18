@@ -27,8 +27,7 @@ struct SeparatorView: View {
             
             Rectangle()
                 .frame(height: .separatorHeight)
-                .foregroundColor(Color.gray)
-                .opacity(0.2)
+                .foregroundColor(.customLightGray)
                 .padding(.leading, 50)
                 .opacity(isHidden ? 0.0001 : 1)
         }

@@ -10,8 +10,8 @@ import CoreTransferable
 import UniformTypeIdentifiers
 
 struct FileItemExample: Identifiable, Hashable, Codable, Transferable {
+    var id: UUID = UUID()
     let name: String
-    var id: String { name }
     
     static var transferRepresentation: some TransferRepresentation {
         CodableRepresentation(contentType: .json)
