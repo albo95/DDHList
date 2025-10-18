@@ -226,17 +226,16 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         ForEach(recursiveItems.indices, id: \.self) { index in
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    if !recursiveItems[index].childrens.isEmpty {
-                        Button(action: {
-                            withAnimation {
-                                itemsExpandInfo[recursiveItems[index].id]?.toggle()
-                            }
-                        }, label: {
-                            Image(systemName: "chevron.down")
-                                .rotationEffect(Angle(degrees:
-                                                        itemsExpandInfo[recursiveItems[index].id] == true ? 0 : -90))
-                        })
-                    }
+                    Button(action: {
+                        withAnimation {
+                            itemsExpandInfo[recursiveItems[index].id]?.toggle()
+                        }
+                    }, label: {
+                        Image(systemName: "chevron.down")
+                            .rotationEffect(Angle(degrees:
+                                                    itemsExpandInfo[recursiveItems[index].id] == true ? 0 : -90))
+                    })
+                    .opacity(recursiveItems[index].childrens.isEmpty ? 0 : 1)
                     
                     rowView(
                         recursiveItems: recursiveItems,
@@ -250,7 +249,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                         recursiveItems: recursiveItems[index].childrens,
                         path: path + [index],
                     ))
-                    .padding(.leading, 20)
+                    .padding(.leading, 40)
                 }
             }
         }
@@ -258,7 +257,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     private func rowView(recursiveItems: [ItemType], item: ItemType, path: [Int]) -> some View {
         ZStack {
-            if path.first == 0 {
+            if path.last == 0 {
                 separatorView(
                     recursiveItems: recursiveItems,
                     path: path.withLast(-1),
@@ -378,19 +377,6 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         }
         
         process(items: items)
-        
-        func printExpandInfo(items: [ItemType], indent: String = "") {
-            for item in items {
-                let isExpanded = itemsExpandInfo[item.id] == true
-                print("\(indent)\(isExpanded ? "✅" : "❌") Item \(item.id)")
-                if !item.childrens.isEmpty {
-                    printExpandInfo(items: item.childrens, indent: indent + "    ")
-                }
-            }
-        }
-        
-        print("🗂 Items expand info:")
-        printExpandInfo(items: items)
         return newExpandInfo
     }
 }
