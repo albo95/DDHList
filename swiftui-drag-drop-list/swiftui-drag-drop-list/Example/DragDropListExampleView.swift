@@ -40,7 +40,8 @@ struct DragDropListExampleView: View {
                         rowView: { FileItemRowExampleView(fileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
-                        }
+                        },
+                        deleteView: { AnyView(DeleteExampleView()) }
                     )
                 case 1: // Drag on separator only
                     DragAndDropListView(

@@ -40,12 +40,16 @@ struct HierarchicalDragDropListExampleView: View {
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onDelete: { item in
                             print("Delete \(item.name)")
-                        }
+                        },
+                        deleteView: { AnyView(DeleteExampleView()) }
                     )
                 case 1: // Drag on separator only
                     DragAndDropHierarchicalListView(
                         items: items,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
+                        onDelete: { item in
+                            print("Delete \(item.name)")
+                        },
                         onItemDroppedOnSeparator: { draggedItem, aboveItem, belowItem in
                             if let aboveItem, let belowItem {
                                 print("Dropped \(draggedItem.name) between \(aboveItem.name) and \(belowItem.name)")

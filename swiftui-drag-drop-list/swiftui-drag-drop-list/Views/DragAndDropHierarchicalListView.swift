@@ -19,6 +19,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     let items: [ItemType]
     let expandedItemsIDs: [ItemID]
     let rowView: (ItemType) -> RowView
+    let deleteView: (() -> any View)?
     let isDeleteRowEnabled: Bool
     let onDelete: (ItemType) -> Void
     let isDragAndDropEnabled: Bool
@@ -45,6 +46,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         items: [ItemType],
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
+        deleteView: (() -> any View)? = nil,
         isDeleteRowEnabled: Bool = true,
         onDelete: @escaping (ItemType) -> Void = { _ in },
         isDragAndDropEnabled: Bool = true,
@@ -65,6 +67,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         self.rowView = rowView
         self.isDeleteRowEnabled = isDeleteRowEnabled
         self.onDelete = onDelete
+        self.deleteView = deleteView
         self.isDragAndDropEnabled = isDragAndDropEnabled
         self.onItemDroppedOnSeparator = onItemDroppedOnSeparator
         self.isDragAndDropOnOtherItemsEnabled = isDragAndDropOnOtherItemsEnabled
@@ -81,12 +84,14 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
+        deleteView: (() -> any View)? = nil,
         colorOnHover: Color = .blue
     ) {
         self.init(
             items: items,
             expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
+            deleteView: deleteView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
             isDragAndDropEnabled: false,
@@ -148,6 +153,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
+        deleteView: (() -> any View)? = nil,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
             _ aboveItem: ItemType?,
@@ -159,6 +165,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             items: items,
             expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
+            deleteView: deleteView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
@@ -172,6 +179,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
+        deleteView: (() -> any View)? = nil,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
             _ aboveItem: ItemType?,
@@ -187,6 +195,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             items: items,
             expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
+            deleteView: deleteView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
@@ -304,36 +313,32 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     // MARK: - Row Wrapper
     private func hierarchicalRowWrapper(for item: ItemType, path: [Int]) -> some View {
-        HStack {
-            HierarchicalRowWrapper(
-                path: path,
-                item: item,
-                currentlySwipedRowPath: $currentlySwipedRowPath,
-                currentlyDraggedItem: $currentlyDraggedItem,
-                lastDraggedItem: $lastDraggedItem,
-                hideCurrentItem: $hideCurrentItem,
-                isDeletionEnable: isDeleteRowEnabled,
-                onDelete: { onDelete(item) },
-                content: rowView,
-                onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-                colorOnHover: colorOnHover,
-                onDrag: {
-                    onDrag(path: path)
-                },
-                onDrop: resetDragging,
-                canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
-                isDragAndDropEnabled: isDragAndDropEnabled,
-                rowWidth: listWidth
-            )
-            .padding(.vertical, 1)
-        }
+        DragAndDropHierarchicalListRowWrapper(
+            path: path,
+            item: item,
+            currentlySwipedRowPath: $currentlySwipedRowPath,
+            currentlyDraggedItem: $currentlyDraggedItem,
+            lastDraggedItem: $lastDraggedItem,
+            hideCurrentItem: $hideCurrentItem,
+            isDeletionEnable: isDeleteRowEnabled,
+            deleteView: deleteView.map { AnyView($0()) },
+            onDelete: { onDelete(item) },
+            content: rowView,
+            onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
+            colorOnHover: colorOnHover,
+            onDrag: { onDrag(path: path) },
+            onDrop: resetDragging,
+            canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
+            isDragAndDropEnabled: isDragAndDropEnabled,
+            rowWidth: listWidth
+        ).padding(.vertical, 1)
     }
     
     // MARK: - Separator View
     private func separatorView(recursiveItems: [ItemType], path: [Int], onDrop: @escaping () -> Void = {})-> some View {
         let isAboveFirstItem = path.last == -1
         let isBelowLastItem = path.last == recursiveItems.count - 1
-        return SeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
+        return DragAndDropListSeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
             .dropDestination(for: ItemType.self) { draggedItem, location in
                 defer {
                     onDrop()

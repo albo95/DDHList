@@ -1,22 +1,23 @@
 //
-//  HierarchicalRowWrapper.swift
-//  swiftui-drag-drop-list
+//  FileItemRowWrapperGeneric.swift
+//  ProveDragAndDropSezioni
 //
-//  Created by Alberto Bruno on 18/10/25.
+//  Created by Alberto Bruno on 16/10/25.
 //
 
 import Foundation
 import SwiftUI
 
-struct HierarchicalRowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
-    let path: [Int]
+struct DragAndDropListRowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
+    let index: Int
     let item: ItemType
-    @Binding var currentlySwipedRowPath: [Int]
+    @Binding var currentlySwipedRow: Int?
     @Binding var currentlyDraggedItem: ItemType?
     @Binding var lastDraggedItem: ItemType?
     @Binding var hideCurrentItem: Bool
     let isDeletionEnable: Bool
     let onDelete: () -> Void
+    let deleteView: AnyView?
     let content: (ItemType) -> Content
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
@@ -38,13 +39,14 @@ struct HierarchicalRowWrapper<ItemType: Transferable & Identifiable, Content: Vi
                 .swipeToDelete(
                     onDelete: onDelete,
                     isActive: isDeletionEnable,
+                    deleteView: deleteView,
                     isSwiped: Binding(
-                        get: { currentlySwipedRowPath == path },
+                        get: { currentlySwipedRow == index },
                         set: { newValue in
                             if newValue {
-                                currentlySwipedRowPath = path
-                            } else if currentlySwipedRowPath == path {
-                                currentlySwipedRowPath = []
+                                currentlySwipedRow = index
+                            } else if currentlySwipedRow == index {
+                                currentlySwipedRow = nil
                             }
                         }
                     )

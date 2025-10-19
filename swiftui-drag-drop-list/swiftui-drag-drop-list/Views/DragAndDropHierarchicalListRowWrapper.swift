@@ -1,21 +1,22 @@
 //
-//  FileItemRowWrapperGeneric.swift
-//  ProveDragAndDropSezioni
+//  HierarchicalRowWrapper.swift
+//  swiftui-drag-drop-list
 //
-//  Created by Alberto Bruno on 16/10/25.
+//  Created by Alberto Bruno on 18/10/25.
 //
 
 import Foundation
 import SwiftUI
 
-struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
-    let index: Int
+struct DragAndDropHierarchicalListRowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
+    let path: [Int]
     let item: ItemType
-    @Binding var currentlySwipedRow: Int?
+    @Binding var currentlySwipedRowPath: [Int]
     @Binding var currentlyDraggedItem: ItemType?
     @Binding var lastDraggedItem: ItemType?
     @Binding var hideCurrentItem: Bool
     let isDeletionEnable: Bool
+    let deleteView: AnyView?
     let onDelete: () -> Void
     let content: (ItemType) -> Content
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
@@ -38,13 +39,14 @@ struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
                 .swipeToDelete(
                     onDelete: onDelete,
                     isActive: isDeletionEnable,
+                    deleteView: deleteView,
                     isSwiped: Binding(
-                        get: { currentlySwipedRow == index },
+                        get: { currentlySwipedRowPath == path },
                         set: { newValue in
                             if newValue {
-                                currentlySwipedRow = index
-                            } else if currentlySwipedRow == index {
-                                currentlySwipedRow = nil
+                                currentlySwipedRowPath = path
+                            } else if currentlySwipedRowPath == path {
+                                currentlySwipedRowPath = []
                             }
                         }
                     )
@@ -66,10 +68,7 @@ struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
                         onDrop()
                     }
                     
-                    guard canBeDraggedOn else {
-                        return false
-                    }
-                    
+                    guard canBeDraggedOn else { return false }
                     guard currentlyDraggedItem?.id != item.id else {
                         currentlyDraggedItem = nil
                         return false
@@ -79,7 +78,6 @@ struct RowWrapper<ItemType: Transferable & Identifiable, Content: View>: View {
                         onItemDroppedOnOtherItem(firstDraggedItem, item)
                         return true
                     }
-                    
                     return false
                     
                 } isTargeted: { value in

@@ -13,17 +13,18 @@ struct SwipeToDeleteModifier: ViewModifier {
     let onDelete: () -> Void
     let isActive: Bool
     @Binding var isSwiped: Bool
-    
+    let deleteView: AnyView?
     let maxOffset: CGFloat = 60
     let threshold: CGFloat = 20
     let gestureSlower: CGFloat = 0.1
     
     @State private var offsetX: CGFloat
     
-    init(onDelete: @escaping () -> Void, isActive: Bool = true, isSwiped: Binding<Bool>) {
+    init(onDelete: @escaping () -> Void, isActive: Bool = true, isSwiped: Binding<Bool>, deleteView: AnyView? = nil) {
         self.onDelete = onDelete
         self.offsetX = 60
         self.isActive = isActive
+        self.deleteView = deleteView
         self._isSwiped = isSwiped
     }
     
@@ -77,11 +78,15 @@ struct SwipeToDeleteModifier: ViewModifier {
                 hideTrashIcon()
             }
         } label: {
-            Image(systemName: "trash")
-                .font(.system(size: 20))
-                .fontWeight(.semibold)
-                .foregroundStyle(.red)
-                .padding(.horizontal)
+            if let deleteView {
+                deleteView
+            } else {
+                Image(systemName: "trash")
+                    .font(.system(size: 20))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal)
+            }
         }
     }
     

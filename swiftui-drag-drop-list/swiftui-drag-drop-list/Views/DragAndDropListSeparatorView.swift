@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct SeparatorView: View {
+struct DragAndDropListSeparatorView: View {
     let isTargeted: Bool
     let isHidden: Bool
     let colorOnHover: Color
@@ -47,6 +47,5 @@ struct SeparatorView: View {
                     }
                 )
         }
-        .padding(.leading, 20)
     }
 }
