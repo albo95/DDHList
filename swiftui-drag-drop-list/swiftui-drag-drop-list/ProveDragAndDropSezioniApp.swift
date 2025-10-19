@@ -11,8 +11,23 @@ import SwiftUI
 struct ProveDragAndDropSezioniApp: App {
     var body: some Scene {
         WindowGroup {
-            //DragDropListExampleView()
+            MainTabView()
+        }
+    }
+}
+
+struct MainTabView: View {
+    var body: some View {
+        TabView {
+            DragDropListExampleView()
+                .tabItem {
+                    Label("Simple", systemImage: "list.bullet")
+                }
+
             HierarchicalDragDropListExampleView()
+                .tabItem {
+                    Label("Hierarchical", systemImage: "list.triangle")
+                }
         }
     }
 }
