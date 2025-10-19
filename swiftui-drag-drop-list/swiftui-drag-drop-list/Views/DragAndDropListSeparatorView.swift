@@ -29,7 +29,6 @@ struct DragAndDropListSeparatorView: View {
                 Rectangle()
                     .frame(height: .separatorHeight)
                     .foregroundColor(.separatorGray)
-                    .padding(.leading, 20)
             }
         }
         .opacity(isHidden || isTargeted ? 0.0001 : 1)

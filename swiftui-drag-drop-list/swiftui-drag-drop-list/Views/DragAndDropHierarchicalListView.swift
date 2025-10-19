@@ -268,7 +268,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                         recursiveItems: recursiveItems[index].childrens,
                         path: path + [index],
                     ))
-                    .padding(.leading, 30)
+                    .padding(.leading, 40)
                 }
             }
         }
