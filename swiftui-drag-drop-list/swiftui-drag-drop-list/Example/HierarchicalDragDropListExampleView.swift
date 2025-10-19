@@ -10,7 +10,7 @@ import SwiftUI
 
 struct HierarchicalDragDropListExampleView: View {
     @State private var items = HierarchicalFileItemExample.mockItems
-    @State private var selectedVariant = 0
+    @State private var selectedVariant = 4
 
     private let variants = [
         "D",

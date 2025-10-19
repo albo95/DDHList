@@ -226,7 +226,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         ForEach(recursiveItems.indices, id: \.self) { index in
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    rowView(
+                    hierarchicalRowView(
                         recursiveItems: recursiveItems,
                         item: recursiveItems[index],
                         path: path + [index]
@@ -244,7 +244,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         }
     }
     
-    private func rowView(recursiveItems: [ItemType], item: ItemType, path: [Int]) -> some View {
+    private func hierarchicalRowView(recursiveItems: [ItemType], item: ItemType, path: [Int]) -> some View {
         ZStack {
             if path.last == 0 {
                 separatorView(
@@ -267,7 +267,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                     })
                     .opacity(item.childrens.isEmpty ? 0 : 1)
                     
-                    rowWrapper(for: recursiveItems[lastPathElement], path: path)
+                    hierarchicalRowWrapper(for: recursiveItems[lastPathElement], path: path)
                         .zIndex(0)
                         .readSize { size in
                             rowSemiHeights[path] = size.height / 2
@@ -300,7 +300,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     }
     
     // MARK: - Row Wrapper
-    private func rowWrapper(for item: ItemType, path: [Int]) -> some View {
+    private func hierarchicalRowWrapper(for item: ItemType, path: [Int]) -> some View {
         HStack {
             HierarchicalRowWrapper(
                 path: path,

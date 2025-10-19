@@ -27,7 +27,7 @@ struct SeparatorView: View {
         ZStack {
             Rectangle()
                 .frame(height: .separatorHeight)
-                .foregroundColor(.customLightGray)
+                .foregroundColor(.separatorGray)
                 .opacity(isHidden ? 0.0001 : 1)
             
             RoundedRectangle(cornerRadius: 12)
