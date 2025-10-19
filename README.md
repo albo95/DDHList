@@ -29,7 +29,7 @@ In other words, you decide how the list’s data should change after a drag-and-
 ## 🧱 Use Case
 
 This project is meant as a **reusable UI component** or a **playground** for experimenting with list interactions in SwiftUI projects.
-
+- iOS 16.4+
 ---
 
 ## 🛠️ Built With
@@ -37,7 +37,6 @@ This project is meant as a **reusable UI component** or a **playground** for exp
 - SwiftUI  
 - Xcode  
 - Swift 5.5+
-- iOS 16.4+
 
 ---
 
