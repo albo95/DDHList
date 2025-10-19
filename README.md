@@ -24,7 +24,7 @@ In other words, you decide how the list’s data should change after a drag-and-
 In the **hierarchical version**, drag and drop allows flexible reordering:
 - 🔹 Move an element **between items** on the same level  
 - 🔹 Drop an element **as a child** of another item  
-- 🔹 Drop an element **between existing children** of a parent item  
+- 🔹 Drop an element **between existing children** of an item  
 
 This makes it easy to build and manage complex nested lists where items can become parents or children dynamically.
 
