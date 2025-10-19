@@ -20,6 +20,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     let isDragAndDropOnOtherItemsEnabled: Bool
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
+    let separatorView: (() -> any View)?
     
     @State private var dragTargetIndex: Int? = nil
     @State private var dropTargetIndex: Int? = nil
@@ -51,7 +52,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             _ draggedItem: ItemType,
             _ targetItem: ItemType
         ) -> Void = { _, _ in },
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.items = items
         self.rowView = rowView
@@ -64,6 +66,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.colorOnHover = colorOnHover
         self.rowSemiHeights = Array(repeating: 0, count: items.count)
+        self.separatorView = separatorView
     }
     
     // MARK: - Convenience initializers
@@ -72,7 +75,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (Int) -> Void,
         deleteView: (() -> any View)? = nil,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -82,7 +86,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             deleteView: deleteView,
             isDragAndDropEnabled: false,
             isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -94,7 +99,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             _ aboveIndex: Int,
             _ belowIndex: Int
         ) -> Void,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -102,7 +108,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             isDeleteRowEnabled: false,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -118,7 +125,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             _ draggedItem: ItemType,
             _ targetItem: ItemType
         ) -> Void,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -126,7 +134,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             isDeleteRowEnabled: false,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -140,7 +149,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             _ aboveIndex: Int,
             _ belowIndex: Int
         ) -> Void,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -150,7 +160,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             deleteView: deleteView,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -168,7 +179,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             _ draggedItem: ItemType,
             _ targetItem: ItemType
         ) -> Void,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -177,7 +189,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             onDelete: onDelete,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -268,7 +281,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     
     // MARK: - Separator View
     private func separatorView(index: Int, isOnTop: Bool = false, onDrop: @escaping () -> Void = {})-> some View {
-        DragAndDropListSeparatorView(isTargeted: dropTargetIndex == index, isHidden: false)
+        DragAndDropListSeparatorView(isTargeted: dropTargetIndex == index, isHidden: false, separatorView: separatorView.map { AnyView($0()) })
             .dropDestination(for: ItemType.self) { draggedItem, location in
                 defer {
                     onDrop()

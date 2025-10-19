@@ -27,6 +27,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     let isDragAndDropOnOtherItemsEnabled: Bool
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
+    let separatorView: (() -> any View)?
     
     @State private var itemsExpandInfo: [ItemID: Bool]
     @State private var dragTargetPath: [Int] = []
@@ -60,7 +61,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             _ draggedItem: ItemType,
             _ targetItem: ItemType
         ) -> Void = { _, _ in },
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.items = items
         self.expandedItemsIDs = expandedItemsIDs
@@ -74,6 +76,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.colorOnHover = colorOnHover
         self.rowSemiHeights = [[]:0]
+        self.separatorView = separatorView
         self._itemsExpandInfo = State(initialValue: [:])
         self._itemsExpandInfo = State(initialValue: getItemsOpenInfo(items: items))
     }
@@ -85,7 +88,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
         deleteView: (() -> any View)? = nil,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -109,7 +113,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             _ aboveItem: ItemType?,
             _ belowItem: ItemType?
         ) -> Void = { _, _, _ in },
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -118,7 +123,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             isDeleteRowEnabled: false,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -135,7 +141,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             _ draggedItem: ItemType,
             _ targetItem: ItemType
         ) -> Void,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -144,7 +151,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             isDeleteRowEnabled: false,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -159,7 +167,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             _ aboveItem: ItemType?,
             _ belowItem: ItemType?
         ) -> Void = { _, _, _ in },
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -170,7 +179,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             onDelete: onDelete,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -189,7 +199,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             _ draggedItem: ItemType,
             _ targetItem: ItemType
         ) -> Void,
-        colorOnHover: Color = .blue
+        colorOnHover: Color = .blue,
+        separatorView: (() -> any View)? = nil
     ) {
         self.init(
             items: items,
@@ -200,7 +211,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             onDelete: onDelete,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            colorOnHover: colorOnHover
+            colorOnHover: colorOnHover,
+            separatorView: separatorView
         )
     }
     
@@ -338,7 +350,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     private func separatorView(recursiveItems: [ItemType], path: [Int], onDrop: @escaping () -> Void = {})-> some View {
         let isAboveFirstItem = path.last == -1
         let isBelowLastItem = path.last == recursiveItems.count - 1
-        return DragAndDropListSeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
+        return DragAndDropListSeparatorView(isTargeted: dropTargetPath == path, isHidden: false, separatorView: separatorView.map { AnyView($0()) })
             .dropDestination(for: ItemType.self) { draggedItem, location in
                 defer {
                     onDrop()

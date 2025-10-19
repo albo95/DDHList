@@ -49,7 +49,8 @@ struct DragDropListExampleView: View {
                         rowView: { FileItemRowExampleView(fileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
                             print("Dropped \(dragged.name) between \(above) and \(below)")
-                        }
+                        },
+                        separatorView: { SeparatorViewExample() }
                     )
                 case 2: // Drag on separator + other item
                     DragAndDropListView(

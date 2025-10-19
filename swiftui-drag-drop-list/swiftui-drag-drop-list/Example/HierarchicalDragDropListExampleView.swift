@@ -58,7 +58,8 @@ struct HierarchicalDragDropListExampleView: View {
                             } else if let aboveItem {
                                 print("Dropped \(draggedItem.name) below \(aboveItem.name)")
                             }
-                        }
+                        },
+                        separatorView: { SeparatorViewExample() }
                     )
                 case 2: // Drag on separator + other item
                     DragAndDropHierarchicalListView(
