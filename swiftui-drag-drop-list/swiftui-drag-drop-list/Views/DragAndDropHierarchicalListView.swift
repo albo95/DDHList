@@ -272,6 +272,9 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                         .readSize { size in
                             rowSemiHeights[path] = size.height / 2
                         }
+                    
+                    //                    Text("\(path)")
+                    //                        .font(.caption)
                 }
                 
                 separatorView(
@@ -328,8 +331,9 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     
     // MARK: - Separator View
     private func separatorView(recursiveItems: [ItemType], path: [Int], onDrop: @escaping () -> Void = {})-> some View {
-        
-        SeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
+        let isAboveFirstItem = path.last == -1
+        let isBelowLastItem = path.last == recursiveItems.count - 1
+        return SeparatorView(isTargeted: dropTargetPath == path, isHidden: false)
             .dropDestination(for: ItemType.self) { draggedItem, location in
                 defer {
                     onDrop()
@@ -341,13 +345,13 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                     var aboveItem: ItemType? = nil
                     var belowItem: ItemType? = nil
                     
-                    if path.last == 0 || path.last == -1 {
+                    if isAboveFirstItem {
                         aboveItem = nil
                     } else if let pathLast = path.last, recursiveItems.count > pathLast + 1{
-                        aboveItem = recursiveItems[pathLast - 1]
+                        aboveItem = recursiveItems[pathLast]
                     }
                     
-                    if path.last == recursiveItems.count - 1 {
+                    if isBelowLastItem {
                         belowItem = nil
                     } else if let pathLast = path.last {
                         belowItem = recursiveItems[pathLast + 1]
@@ -359,10 +363,10 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                 return true
             } isTargeted: { value in
                 hideCurrentItem = true
-                guard currentlyDraggedPath != path, currentlyDraggedPath != path.incrementLast() else { return }
+                guard currentlyDraggedPath != path, currentlyDraggedPath != path.decrementLast() else { return }
                 dropTargetPath = value ? path : []
             }
-            .offset(y: (path.last == -1 ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
+            .offset(y: (isAboveFirstItem ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
     }
     
     private func getItemsOpenInfo(items: [ItemType]) -> [ItemID: Bool] {

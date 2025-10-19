@@ -10,7 +10,7 @@ import SwiftUI
 
 struct DragDropListExampleView: View {
     @State private var items = FileItemExample.mockItems
-    @State private var selectedVariant = 0
+    @State private var selectedVariant = 4
 
     private let variants = [
         "D",
@@ -37,7 +37,7 @@ struct DragDropListExampleView: View {
                 case 0: // Delete only
                     DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { FileItemRowExampleView(fileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         }
@@ -45,7 +45,7 @@ struct DragDropListExampleView: View {
                 case 1: // Drag on separator only
                     DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { FileItemRowExampleView(fileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
                             print("Dropped \(dragged.name) between \(above) and \(below)")
                         }
@@ -53,7 +53,7 @@ struct DragDropListExampleView: View {
                 case 2: // Drag on separator + other item
                     DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { FileItemRowExampleView(fileItem: $0) },
                         onItemDroppedOnSeparator: { dragged, above, below in
                             print("Dropped \(dragged.name) between \(above) and \(below)")
                         },
@@ -64,7 +64,7 @@ struct DragDropListExampleView: View {
                 case 3: // Delete + Drag on separator
                     DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { FileItemRowExampleView(fileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         },
@@ -75,7 +75,7 @@ struct DragDropListExampleView: View {
                 case 4: // Delete + Drag on separator + other item
                     DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRowExample(fileItem: $0) },
+                        rowView: { FileItemRowExampleView(fileItem: $0) },
                         onDelete: { index in
                             print("Delete at \(index)")
                         },
