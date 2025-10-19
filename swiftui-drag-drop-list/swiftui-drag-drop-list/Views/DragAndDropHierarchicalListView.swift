@@ -268,7 +268,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                         recursiveItems: recursiveItems[index].childrens,
                         path: path + [index],
                     ))
-                    .padding(.leading, 40)
+                    .padding(.leading, 50)
                 }
             }
         }
@@ -311,7 +311,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                     recursiveItems: recursiveItems,
                     path: path,
                     onDrop: resetDragging
-                ).zIndex(1)
+                )
+                .zIndex(1)
             }
         }
     }
@@ -392,6 +393,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                 guard currentlyDraggedPath != path, currentlyDraggedPath != path.decrementLast() else { return }
                 dropTargetPath = value ? path : []
             }
+            .padding(.leading, 30)
             .offset(y: (isAboveFirstItem ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
     }
     

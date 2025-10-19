@@ -306,6 +306,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                 guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
                 dropTargetIndex = value ? index : nil
             }
+            .padding(.leading, 30)
             .offset(y: isOnTop ? -rowSemiHeights[0] : rowSemiHeights[index])
     }
 }
