@@ -88,6 +88,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         rowView: @escaping (ItemType) -> RowView,
         onDelete: @escaping (ItemType) -> Void,
         deleteView: (() -> any View)? = nil,
+        isDragAndDropEnabled: Bool = true,
         colorOnHover: Color = .blue,
         separatorView: (() -> any View)? = nil
     ) {
@@ -98,7 +99,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             deleteView: deleteView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
-            isDragAndDropEnabled: false,
+            isDragAndDropEnabled: isDragAndDropEnabled,
             isDragAndDropOnOtherItemsEnabled: false,
             colorOnHover: colorOnHover
         )
@@ -108,6 +109,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         items: [ItemType],
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
+        isDragAndDropEnabled: Bool = true,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
             _ aboveItem: ItemType?,
@@ -121,6 +123,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
             isDeleteRowEnabled: false,
+            isDragAndDropEnabled: isDragAndDropEnabled,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             isDragAndDropOnOtherItemsEnabled: false,
             colorOnHover: colorOnHover,
@@ -132,6 +135,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         items: [ItemType],
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
+        isDragAndDropEnabled: Bool = true,
         onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
             _ aboveItem: ItemType?,
@@ -149,6 +153,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             expandedItemsIDs: expandedItemsIDs,
             rowView: rowView,
             isDeleteRowEnabled: false,
+            isDragAndDropEnabled: isDragAndDropEnabled,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
             colorOnHover: colorOnHover,
@@ -160,6 +165,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         items: [ItemType],
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
+        isDragAndDropEnabled: Bool = true,
         onDelete: @escaping (ItemType) -> Void,
         deleteView: (() -> any View)? = nil,
         onItemDroppedOnSeparator: @escaping (
@@ -177,6 +183,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             deleteView: deleteView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
+            isDragAndDropEnabled: isDragAndDropEnabled,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             isDragAndDropOnOtherItemsEnabled: false,
             colorOnHover: colorOnHover,
@@ -188,6 +195,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         items: [ItemType],
         expandedItemsIDs: [ItemID] = [],
         rowView: @escaping (ItemType) -> RowView,
+        isDragAndDropEnabled: Bool = true,
         onDelete: @escaping (ItemType) -> Void,
         deleteView: (() -> any View)? = nil,
         onItemDroppedOnSeparator: @escaping (
@@ -209,6 +217,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             deleteView: deleteView,
             isDeleteRowEnabled: true,
             onDelete: onDelete,
+            isDragAndDropEnabled: isDragAndDropEnabled,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
             colorOnHover: colorOnHover,
