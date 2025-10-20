@@ -22,6 +22,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     let colorOnHover: Color
     let separatorView: (() -> any View)?
     let belowListView: (() -> any View)?
+    let isRowHeightFixed: Bool
     
     @State private var dragTargetIndex: Int? = nil
     @State private var dropTargetIndex: Int? = nil
@@ -34,7 +35,10 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     @State private var totalTranslationHeight: CGFloat = 0
     @State private var hideCurrentItem: Bool = false
     @State private var rowHeights: [Int:CGFloat]
+    @State private var fixedRowHeight: CGFloat = 0
     @State private var listWidth: CGFloat = 0
+    
+    @Binding var isDraggingElement: Bool
     
     init(
         items: [ItemType],
@@ -55,7 +59,9 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         ) -> Void = { _, _ in },
         colorOnHover: Color = .blue,
         separatorView: (() -> any View)? = nil,
-        belowListView: (() -> any View)? = nil
+        belowListView: (() -> any View)? = nil,
+        isDraggingElement: Binding<Bool> = .constant(false),
+        isRowHeightFixed: Bool = false
     ) {
         self.items = items
         self.rowView = rowView
@@ -70,6 +76,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         self.rowHeights = [:]
         self.separatorView = separatorView
         self.belowListView = belowListView
+        self._isDraggingElement = isDraggingElement
+        self.isRowHeightFixed = isRowHeightFixed
     }
     
     var body: some View {
@@ -79,11 +87,18 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                     Spacer()
                         .frame(height:  .separatorHooverHeight)
                     
-                    ForEach(items.indices, id: \.self) { index in
+                    rowWrapper(for: items[0], index: 0)
+                        .readSize { size in
+                            rowHeights[0] = size.height
+                            fixedRowHeight = size.height
+                        }
+                    
+                    ForEach(items.dropFirst().indices, id: \.self) { index in
                         rowWrapper(for: items[index], index: index)
-                            .readSize { size in
+                            .conditionalReadSize(!isRowHeightFixed) { size in
                                 rowHeights[index] = size.height
                             }
+                            .conditionalHeight(isRowHeightFixed, fixedRowHeight)
                     }
                     .readSize { size in
                         listWidth = size.width
@@ -100,9 +115,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                         .position(x: proxy.size.width / 2, y: .separatorHooverHeight)
                     
                     ForEach(items.indices, id: \.self) { index in
-                        let fixedIncrement = (rowHeights[0] ?? 0) + CGFloat.separatorHooverHeight
-                        let yPos = (0..<index).reduce(CGFloat(0)) { $0 + (rowHeights[$1] ?? 0) + CGFloat.separatorHeight } + fixedIncrement
-                        
+                        let fixedIncrement = (rowHeight(for: 0)) + CGFloat.separatorHooverHeight
+                        let yPos = (0..<index).reduce(CGFloat(0)) { $0 + rowHeight(for: $1) + CGFloat.separatorHeight } + fixedIncrement
                         separatorView(index: index)
                             .frame(maxWidth: .infinity)
                             .position(x: proxy.size.width / 2, y: yPos)
@@ -126,6 +140,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     private func onDrag(index: Int) {
         resetSwiping()
         currentlyDraggedIndex = index
+        isDraggingElement = true
     }
     
     private func resetSwiping() {
@@ -137,6 +152,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         currentlyDraggedIndex = nil
         currentlyDraggedItem = nil
         hideCurrentItem = false
+        isDraggingElement = false
     }
     
     // MARK: - Row Wrapper
@@ -162,7 +178,6 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             isDragAndDropEnabled: isDragAndDropEnabled,
             rowWidth: listWidth
         )
-        .padding(.vertical, 1)
     }
     
     // MARK: - Separator View
@@ -185,5 +200,9 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                 guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
                 dropTargetIndex = value ? index : nil
             }
+    }
+    
+    private func rowHeight(for index: Int) -> CGFloat {
+        isRowHeightFixed ? fixedRowHeight : (rowHeights[index] ?? 0)
     }
 }

@@ -26,8 +26,26 @@ extension View {
         ))
     }
     
+    @ViewBuilder
+    func conditionalReadSize(_ condition: Bool, _ onChange: @escaping (CGSize) -> Void) -> some View {
+        if condition {
+            self.readSize(onChange)
+        } else {
+            self
+        }
+    }
+    
     func readSize(_ onChange: @escaping (CGSize) -> Void) -> some View {
         self.modifier(SizeReader(onChange: onChange))
+    }
+    
+    @ViewBuilder
+    func conditionalHeight(_ condition: Bool, _ height: CGFloat) -> some View {
+        if condition {
+            self.frame(height: height)
+        } else {
+            self
+        }
     }
 }
 

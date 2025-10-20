@@ -87,7 +87,8 @@ struct DragDropListExampleView: View {
                         },
                         onItemDroppedOnOtherItem: { dragged, target in
                             print("Dropped \(dragged.name) on \(target.name)")
-                        }
+                        },
+                        isRowHeightFixed: true
                     )
                 default:
                     EmptyView()

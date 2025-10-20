@@ -44,6 +44,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     @State private var rowHeights: [[Int] : CGFloat]
     @State private var listWidth: CGFloat = 0
     
+    @Binding var isDraggingElement: Bool
+
     init(
         items: [ItemType],
         expandedItemsIDs: [ItemID] = [],
@@ -64,7 +66,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         ) -> Void = { _, _ in },
         colorOnHover: Color = .blue,
         separatorView: (() -> any View)? = nil,
-        belowListView: (() -> any View)? = nil
+        belowListView: (() -> any View)? = nil,
+        isDraggingElement: Binding<Bool> = .constant(false)
     ) {
         self.items = items
         self.expandedItemsIDs = expandedItemsIDs
@@ -80,6 +83,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         self.rowHeights = [[]:0]
         self.separatorView = separatorView
         self.belowListView = belowListView
+        self._isDraggingElement = isDraggingElement
     }
     
     var body: some View {
@@ -230,7 +234,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             canBeDraggedOn: isDragAndDropOnOtherItemsEnabled,
             isDragAndDropEnabled: isDragAndDropEnabled,
             rowWidth: listWidth
-        ).padding(.vertical, 1)
+        )
     }
     
     // MARK: - Separator View
