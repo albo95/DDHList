@@ -77,7 +77,8 @@ struct DragDropListExampleView: View {
                 case 4: // Delete + Drag on separator + other item
                     DragAndDropListView(
                         items: items,
-                        rowView: { FileItemRowExampleView(fileItem: $0) },
+                        rowView: { FileItemRowExampleView(fileItem: $0)
+                            .background(.white)},
                         onDelete: { index in
                             print("Delete at \(index)")
                         },

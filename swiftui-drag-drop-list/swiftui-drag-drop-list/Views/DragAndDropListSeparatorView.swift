@@ -32,7 +32,7 @@ struct DragAndDropListSeparatorView: View {
             }
         }
         .opacity(isHidden || isTargeted ? 0.0001 : 1)
-        .padding(.vertical, 8)
+        .padding(.vertical, .separatorHooverHeight)
         .background() {
             RoundedRectangle(cornerRadius: 12)
                 .foregroundStyle(colorOnHover.opacity(isTargeted ? 1 : 0.0001))

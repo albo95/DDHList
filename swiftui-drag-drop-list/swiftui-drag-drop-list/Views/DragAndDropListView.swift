@@ -32,7 +32,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
     @State private var hideCurrentItem: Bool = false
-    @State private var rowSemiHeights: [CGFloat]
+    @State private var rowHeights: [Int:CGFloat]
     @State private var listWidth: CGFloat = 0
     
     private init(
@@ -65,7 +65,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         self.isDragAndDropOnOtherItemsEnabled = isDragAndDropOnOtherItemsEnabled
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.colorOnHover = colorOnHover
-        self.rowSemiHeights = Array(repeating: 0, count: items.count)
+        self.rowHeights = [:]
         self.separatorView = separatorView
     }
     
@@ -203,15 +203,39 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(items.indices, id: \.self) { index in
-                    rowView(item: items[index], index: index)
+            ZStack(alignment: .top) {
+                LazyVStack(spacing: .separatorHeight) {
+                    Spacer()
+                        .frame(height:  .separatorHooverHeight)
+                    
+                    ForEach(items.indices, id: \.self) { index in
+                        rowWrapper(for: items[index], index: index)
+                            .readSize { size in
+                                rowHeights[index] = size.height
+                            }
+                    }
+                }
+                .readSize { size in
+                    listWidth = size.width
+                }
+                
+                GeometryReader { proxy in
+                    separatorView(index: -1)
+                        .frame(maxWidth: .infinity)
+                        .position(x: proxy.size.width / 2, y: .separatorHooverHeight)
+                        .zIndex(1)
+                    
+                    ForEach(items.indices, id: \.self) { index in
+                        let fixedIncrement = (rowHeights[0] ?? 0) + CGFloat.separatorHooverHeight
+                        let yPos = (0..<index).reduce(CGFloat(0)) { $0 + (rowHeights[$1] ?? 0) + CGFloat.separatorHeight } + fixedIncrement
+                        
+                        separatorView(index: index)
+                            .frame(maxWidth: .infinity)
+                            .position(x: proxy.size.width / 2, y: yPos)
+                            .zIndex(1)
+                    }
                 }
             }
-            .readSize { size in
-                listWidth = size.width
-            }
-            .padding(.top, .separatorHooverHeight)
         }
         .scrollDisabled(isScrollDisabled)
         .simultaneousGesture(DragGesture().onChanged { gesture in
@@ -224,24 +248,6 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                 totalTranslationWidth = 0
                 totalTranslationHeight = 0
             })
-    }
-    
-    private func rowView(item: ItemType, index: Int) -> some View {
-        ZStack {
-            if index == 0 {
-                separatorView(index: -1, isOnTop: true, onDrop: resetDragging)
-                    .zIndex(1)
-            }
-            
-            rowWrapper(for: items[index], index: index)
-                .zIndex(0)
-                .readSize { size in
-                    rowSemiHeights[index] = size.height / 2
-                }
-            
-            separatorView(index: index, onDrop: resetDragging)
-                .zIndex(1)
-        }
     }
     
     private func onDrag(index: Int) {
@@ -287,11 +293,11 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     }
     
     // MARK: - Separator View
-    private func separatorView(index: Int, isOnTop: Bool = false, onDrop: @escaping () -> Void = {})-> some View {
+    private func separatorView(index: Int)-> some View {
         DragAndDropListSeparatorView(isTargeted: dropTargetIndex == index, isHidden: false, separatorView: separatorView.map { AnyView($0()) })
             .dropDestination(for: ItemType.self) { draggedItem, location in
                 defer {
-                    onDrop()
+                    resetDragging()
                 }
                 lastDraggedItem = draggedItem.first
                 
@@ -306,6 +312,5 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                 guard currentlyDraggedIndex != index, currentlyDraggedIndex != index + 1 else { return }
                 dropTargetIndex = value ? index : nil
             }
-            .offset(y: isOnTop ? -rowSemiHeights[0] : rowSemiHeights[index])
     }
 }
