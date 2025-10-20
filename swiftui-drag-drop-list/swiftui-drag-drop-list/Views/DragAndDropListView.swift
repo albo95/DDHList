@@ -83,7 +83,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     var body: some View {
         ScrollView {
             ZStack(alignment: .top) {
-                LazyVStack(spacing: .separatorHeight) {
+                ConditionalStack(isLazy: isRowHeightFixed, alignment: .leading, spacing: .separatorHeight) {
                     Spacer()
                         .frame(height:  .separatorHooverHeight)
                     

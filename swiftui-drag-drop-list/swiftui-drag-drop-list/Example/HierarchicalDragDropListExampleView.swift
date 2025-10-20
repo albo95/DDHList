@@ -117,7 +117,9 @@ struct HierarchicalDragDropListExampleView: View {
                         
                         belowListView: {
                             Text("End of list")
-                        }
+                        },
+                        
+                        isRowHeightFixed: true
                     )
                 default:
                     EmptyView()

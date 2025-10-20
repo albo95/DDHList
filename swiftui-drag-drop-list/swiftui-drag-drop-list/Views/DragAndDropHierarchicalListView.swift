@@ -28,6 +28,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     let colorOnHover: Color
     let separatorView: (() -> any View)?
     let belowListView: (() -> any View)?
+    let isRowHeightFixed: Bool
     
     @State private var expandedItemsIDs: [ItemID]
     @State private var expandedItemsPaths: [[Int]] = []
@@ -42,10 +43,11 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     @State private var totalTranslationHeight: CGFloat = 0
     @State private var hideCurrentItem: Bool = false
     @State private var rowHeights: [[Int] : CGFloat]
+    @State private var fixedRowHeight: CGFloat? = nil
     @State private var listWidth: CGFloat = 0
     
     @Binding var isDraggingElement: Bool
-
+    
     init(
         items: [ItemType],
         expandedItemsIDs: [ItemID] = [],
@@ -67,7 +69,8 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         colorOnHover: Color = .blue,
         separatorView: (() -> any View)? = nil,
         belowListView: (() -> any View)? = nil,
-        isDraggingElement: Binding<Bool> = .constant(false)
+        isDraggingElement: Binding<Bool> = .constant(false),
+        isRowHeightFixed: Bool = false
     ) {
         self.items = items
         self.expandedItemsIDs = expandedItemsIDs
@@ -84,6 +87,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         self.separatorView = separatorView
         self.belowListView = belowListView
         self._isDraggingElement = isDraggingElement
+        self.isRowHeightFixed = isRowHeightFixed
     }
     
     var body: some View {
@@ -120,13 +124,30 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
         recursiveItems: [ItemType],
         path: [Int] = [],
     ) -> some View {
-        ForEach(recursiveItems.indices, id: \.self) { index in
-            VStack(alignment: .leading, spacing: .separatorHeight) {
+        
+        ConditionalStack(isLazy: isRowHeightFixed, alignment: .leading, spacing: .separatorHeight) {            
+            if path.isEmpty {
                 hierarchicalRowView(
                     recursiveItems: recursiveItems,
-                    item: recursiveItems[index],
-                    path: path + [index]
+                    item: recursiveItems[0],
+                    path: path + [0]
                 )
+                .readSize { size in
+                    rowHeights[path] = size.height
+                    if isRowHeightFixed {
+                        fixedRowHeight = size.height
+                    }
+                }
+            }
+            
+            ForEach(recursiveItems.indices, id: \.self) { index in
+                if !(path.isEmpty && index == 0) {
+                    hierarchicalRowView(
+                        recursiveItems: recursiveItems,
+                        item: recursiveItems[index],
+                        path: path + [index]
+                    )
+                }
                 
                 if !recursiveItems[index].childrens.isEmpty, expandedItemsIDs.contains([recursiveItems[index].id]) {
                     AnyView(recursiveItemView(
@@ -159,7 +180,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                 
                 separatorView(recursiveItems: recursiveItems, path: path + [index])
                     .offset(y: rowHeights.totalOffset(for: path + [index], expandedPaths: expandedItemsPaths))
-                                
+                
                 if !recursiveItems[index].childrens.isEmpty, expandedItemsIDs.contains([recursiveItems[index].id]) {
                     AnyView(recursiveSeparatorView(
                         recursiveItems: recursiveItems[index].childrens,
@@ -172,30 +193,37 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     }
     
     private func hierarchicalRowView(recursiveItems: [ItemType], item: ItemType, path: [Int]) -> some View {
-       // ZStack {
-            HStack {
-                if let lastPathElement = path.last {
-                    Button(action: {
-                        withAnimation {
-                            toggleElementExpanded(itemID: item.id, path: path)
-                        }
-                    }, label: {
-                        Image(systemName: "chevron.down")
-                            .rotationEffect(Angle(degrees:
-                                                    expandedItemsIDs.contains(item.id) ? 0 : -90))
-                    })
-                    .opacity(item.childrens.isEmpty ? 0 : 1)
-                    
-                    hierarchicalRowWrapper(for: recursiveItems[lastPathElement], path: path)
-                }
+        //ZStack {
+        HStack {
+            if let lastPathElement = path.last {
+                Button(action: {
+                    withAnimation {
+                        toggleElementExpanded(itemID: item.id, path: path)
+                    }
+                }, label: {
+                    Image(systemName: "chevron.down")
+                        .rotationEffect(Angle(degrees:
+                                                expandedItemsIDs.contains(item.id) ? 0 : -90))
+                })
+                .opacity(item.childrens.isEmpty ? 0 : 1)
+                
+                hierarchicalRowWrapper(for: recursiveItems[lastPathElement], path: path)
             }
-            .readSize { size in
-                rowHeights[path] = size.height
+        }
+        .onAppear {
+            if isRowHeightFixed {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                    rowHeights[path] = fixedRowHeight
+                })
             }
-            
-//            Text("\(path)")
-//                .frame(maxWidth: .infinity, alignment: .trailing)
-       // }
+        }
+        .conditionalReadSize(!isRowHeightFixed) { size in
+            rowHeights[path] = size.height
+        }
+        
+        //                    Text("\(path)")
+        //                        .frame(maxWidth: .infinity, alignment: .trailing)
+        //         }
     }
     
     private func onDrag(path: [Int]) {
@@ -241,46 +269,45 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
     private func separatorView(recursiveItems: [ItemType], path: [Int], onDrop: @escaping () -> Void = {})-> some View {
         let isAboveFirstItem = path.last == -1
         let isBelowLastItem = path.last == recursiveItems.count - 1
-        return
-//        ZStack {
-//            Text("\(path)")
-//                .font(.caption)
-//                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            DragAndDropListSeparatorView(isTargeted: dropTargetPath == path, isHidden: false, separatorView: separatorView.map { AnyView($0()) })
-                .dropDestination(for: ItemType.self) { draggedItem, location in
-                    defer {
-                        onDrop()
-                    }
-                    
-                    lastDraggedItem = draggedItem.first
-                    
-                    if let firstDraggedItem = draggedItem.first {
-                        var aboveItem: ItemType? = nil
-                        var belowItem: ItemType? = nil
-                        
-                        if isAboveFirstItem {
-                            aboveItem = nil
-                        } else if let pathLast = path.last, recursiveItems.count > pathLast + 1{
-                            aboveItem = recursiveItems[pathLast]
-                        }
-                        
-                        if isBelowLastItem {
-                            belowItem = nil
-                        } else if let pathLast = path.last {
-                            belowItem = recursiveItems[pathLast + 1]
-                        }
-                        
-                        onItemDroppedOnSeparator(firstDraggedItem, aboveItem, belowItem)
-                    }
-                    
-                    return true
-                } isTargeted: { value in
-                    hideCurrentItem = true
-                    guard currentlyDraggedPath != path, currentlyDraggedPath != path.incrementLast() else { return }
-                    dropTargetPath = value ? path : []
+        //               return ZStack {
+        //                    Text("\(path)")
+        //                        .font(.caption)
+        //                        .frame(maxWidth: .infinity, alignment: .leading)
+        
+        return DragAndDropListSeparatorView(isTargeted: dropTargetPath == path, isHidden: false, separatorView: separatorView.map { AnyView($0()) })
+            .dropDestination(for: ItemType.self) { draggedItem, location in
+                defer {
+                    onDrop()
                 }
-                .padding(.leading, 30)
+                
+                lastDraggedItem = draggedItem.first
+                
+                if let firstDraggedItem = draggedItem.first {
+                    var aboveItem: ItemType? = nil
+                    var belowItem: ItemType? = nil
+                    
+                    if isAboveFirstItem {
+                        aboveItem = nil
+                    } else if let pathLast = path.last, recursiveItems.count > pathLast + 1{
+                        aboveItem = recursiveItems[pathLast]
+                    }
+                    
+                    if isBelowLastItem {
+                        belowItem = nil
+                    } else if let pathLast = path.last {
+                        belowItem = recursiveItems[pathLast + 1]
+                    }
+                    
+                    onItemDroppedOnSeparator(firstDraggedItem, aboveItem, belowItem)
+                }
+                
+                return true
+            } isTargeted: { value in
+                hideCurrentItem = true
+                guard currentlyDraggedPath != path, currentlyDraggedPath != path.incrementLast() else { return }
+                dropTargetPath = value ? path : []
+            }
+            .padding(.leading, 30)
         //}
     }
     
@@ -308,5 +335,9 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
             expandedItemsIDs.append(itemID)
             expandedItemsPaths.append(path)
         }
+    }
+    
+    private func getSeparatorYOffset(for path: [Int]) -> CGFloat {
+        rowHeights.totalOffset(for: path, expandedPaths: expandedItemsPaths)
     }
 }
