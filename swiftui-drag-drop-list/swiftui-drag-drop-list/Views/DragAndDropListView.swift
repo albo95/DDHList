@@ -21,6 +21,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     let onItemDroppedOnOtherItem: (ItemType, ItemType) -> Void
     let colorOnHover: Color
     let separatorView: (() -> any View)?
+    let belowListView: (() -> any View)?
     
     @State private var dragTargetIndex: Int? = nil
     @State private var dropTargetIndex: Int? = nil
@@ -35,7 +36,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     @State private var rowHeights: [Int:CGFloat]
     @State private var listWidth: CGFloat = 0
     
-    private init(
+    init(
         items: [ItemType],
         rowView: @escaping (ItemType) -> RowView,
         isDeleteRowEnabled: Bool = true,
@@ -53,7 +54,8 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
             _ targetItem: ItemType
         ) -> Void = { _, _ in },
         colorOnHover: Color = .blue,
-        separatorView: (() -> any View)? = nil
+        separatorView: (() -> any View)? = nil,
+        belowListView: (() -> any View)? = nil
     ) {
         self.items = items
         self.rowView = rowView
@@ -67,138 +69,7 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
         self.colorOnHover = colorOnHover
         self.rowHeights = [:]
         self.separatorView = separatorView
-    }
-    
-    // MARK: - Convenience initializers
-    init(
-        items: [ItemType],
-        rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (Int) -> Void,
-        deleteView: (() -> any View)? = nil,
-        isDragAndDropEnabled: Bool = true,
-        colorOnHover: Color = .blue,
-        separatorView: (() -> any View)? = nil
-    ) {
-        self.init(
-            items: items,
-            rowView: rowView,
-            isDeleteRowEnabled: true,
-            onDelete: onDelete,
-            deleteView: deleteView,
-            isDragAndDropEnabled: isDragAndDropEnabled,
-            isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover,
-            separatorView: separatorView
-        )
-    }
-    
-    init(
-        items: [ItemType],
-        rowView: @escaping (ItemType) -> RowView,
-        isDragAndDropEnabled: Bool = true,
-        onItemDroppedOnSeparator: @escaping (
-            _ draggedItem: ItemType,
-            _ aboveIndex: Int,
-            _ belowIndex: Int
-        ) -> Void,
-        colorOnHover: Color = .blue,
-        separatorView: (() -> any View)? = nil
-    ) {
-        self.init(
-            items: items,
-            rowView: rowView,
-            isDeleteRowEnabled: false,
-            isDragAndDropEnabled: isDragAndDropEnabled,
-            onItemDroppedOnSeparator: onItemDroppedOnSeparator,
-            isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover,
-            separatorView: separatorView
-        )
-    }
-    
-    init(
-        items: [ItemType],
-        rowView: @escaping (ItemType) -> RowView,
-        isDragAndDropEnabled: Bool = true,
-        onItemDroppedOnSeparator: @escaping (
-            _ draggedItem: ItemType,
-            _ aboveIndex: Int,
-            _ belowIndex: Int
-        ) -> Void,
-        onItemDroppedOnOtherItem: @escaping (
-            _ draggedItem: ItemType,
-            _ targetItem: ItemType
-        ) -> Void,
-        colorOnHover: Color = .blue,
-        separatorView: (() -> any View)? = nil
-    ) {
-        self.init(
-            items: items,
-            rowView: rowView,
-            isDeleteRowEnabled: false,
-            isDragAndDropEnabled: isDragAndDropEnabled,
-            onItemDroppedOnSeparator: onItemDroppedOnSeparator,
-            onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            colorOnHover: colorOnHover,
-            separatorView: separatorView
-        )
-    }
-    
-    init(
-        items: [ItemType],
-        rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (Int) -> Void,
-        deleteView: (() -> any View)? = nil,
-        isDragAndDropEnabled: Bool = true,
-        onItemDroppedOnSeparator: @escaping (
-            _ draggedItem: ItemType,
-            _ aboveIndex: Int,
-            _ belowIndex: Int
-        ) -> Void,
-        colorOnHover: Color = .blue,
-        separatorView: (() -> any View)? = nil
-    ) {
-        self.init(
-            items: items,
-            rowView: rowView,
-            isDeleteRowEnabled: true,
-            onDelete: onDelete,
-            deleteView: deleteView,
-            isDragAndDropEnabled: isDragAndDropEnabled,
-            onItemDroppedOnSeparator: onItemDroppedOnSeparator,
-            isDragAndDropOnOtherItemsEnabled: false,
-            colorOnHover: colorOnHover,
-            separatorView: separatorView
-        )
-    }
-    
-    init(
-        items: [ItemType],
-        rowView: @escaping (ItemType) -> RowView,
-        onDelete: @escaping (Int) -> Void,
-        deleteView: (() -> any View)? = nil,
-        onItemDroppedOnSeparator: @escaping (
-            _ draggedItem: ItemType,
-            _ aboveIndex: Int,
-            _ belowIndex: Int
-        ) -> Void,
-        onItemDroppedOnOtherItem: @escaping (
-            _ draggedItem: ItemType,
-            _ targetItem: ItemType
-        ) -> Void,
-        colorOnHover: Color = .blue,
-        separatorView: (() -> any View)? = nil
-    ) {
-        self.init(
-            items: items,
-            rowView: rowView,
-            isDeleteRowEnabled: true,
-            onDelete: onDelete,
-            onItemDroppedOnSeparator: onItemDroppedOnSeparator,
-            onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            colorOnHover: colorOnHover,
-            separatorView: separatorView
-        )
+        self.belowListView = belowListView
     }
     
     var body: some View {
@@ -214,10 +85,14 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                                 rowHeights[index] = size.height
                             }
                     }
+                    .readSize { size in
+                        listWidth = size.width
+                    }
+                    
+                    belowListView.map { AnyView($0()) }
+                    
                 }
-                .readSize { size in
-                    listWidth = size.width
-                }
+                
                 
                 GeometryReader { proxy in
                     separatorView(index: -1)
