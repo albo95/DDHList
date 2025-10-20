@@ -11,6 +11,7 @@ import SwiftUI
 struct HierarchicalDragDropListExampleView: View {
     @State private var items = HierarchicalFileItemExample.mockItems
     @State private var selectedVariant = 4
+    @State private var repeatedItems = HierarchicalFileItemExample.repeatedMockItems
 
     private let variants = [
         "D",
@@ -97,7 +98,7 @@ struct HierarchicalDragDropListExampleView: View {
                     )
                 case 4: // Delete + Drag on separator + other item
                     DragAndDropHierarchicalListView(
-                        items: items,
+                        items: repeatedItems,
                         rowView: { HierarchicalFileItemRowExample(hierarchicalFileItem: $0) },
                         onDelete: { item in
                             print("Delete \(item.name)")

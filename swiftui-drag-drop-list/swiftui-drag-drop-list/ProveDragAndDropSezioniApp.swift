@@ -19,15 +19,17 @@ struct ProveDragAndDropSezioniApp: App {
 struct MainTabView: View {
     var body: some View {
         TabView {
-            DragDropListExampleView()
-                .tabItem {
-                    Label("Simple", systemImage: "list.bullet")
-                }
-
+            
             HierarchicalDragDropListExampleView()
                 .tabItem {
                     Label("Hierarchical", systemImage: "list.triangle")
                 }
+            
+            DragDropListExampleView()
+                .tabItem {
+                    Label("Simple", systemImage: "list.bullet")
+                }
+            
         }
     }
 }

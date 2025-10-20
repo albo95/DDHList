@@ -223,7 +223,6 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                     separatorView(index: -1)
                         .frame(maxWidth: .infinity)
                         .position(x: proxy.size.width / 2, y: .separatorHooverHeight)
-                        .zIndex(1)
                     
                     ForEach(items.indices, id: \.self) { index in
                         let fixedIncrement = (rowHeights[0] ?? 0) + CGFloat.separatorHooverHeight
@@ -232,7 +231,6 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
                         separatorView(index: index)
                             .frame(maxWidth: .infinity)
                             .position(x: proxy.size.width / 2, y: yPos)
-                            .zIndex(1)
                     }
                 }
             }

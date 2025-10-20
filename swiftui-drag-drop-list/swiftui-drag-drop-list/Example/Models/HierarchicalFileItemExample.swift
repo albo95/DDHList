@@ -22,7 +22,7 @@ struct HierarchicalFileItemExample: HierarchicalItemType, Hashable, Codable {
 
 extension HierarchicalFileItemExample {
     static let mockItem: HierarchicalFileItemExample = HierarchicalFileItemExample(name: "Mock")
-
+    
     static let mockItems: [HierarchicalFileItemExample] = [
         HierarchicalFileItemExample(
             name: "Documents",
@@ -70,4 +70,18 @@ extension HierarchicalFileItemExample {
         HierarchicalFileItemExample(name: "Downloads"),
         HierarchicalFileItemExample(name: "Desktop")
     ]
+    
+    static let repeatedMockItems: [HierarchicalFileItemExample] = {
+        (0..<10).flatMap { repetitionIndex in
+            mockItems.map { item in
+                func assignUniqueIDs(_ item: HierarchicalFileItemExample, prefix: String) -> HierarchicalFileItemExample {
+                    var copy = item
+                    copy.childrens = copy.childrens.map { assignUniqueIDs($0, prefix: prefix) }
+                    // Nuovo ID basato su prefix e nome
+                    return HierarchicalFileItemExample(name: "\(prefix)-\(copy.name)", childrens: copy.childrens)
+                }
+                return assignUniqueIDs(item, prefix: "\(repetitionIndex)")
+            }
+        }
+    }()
 }
