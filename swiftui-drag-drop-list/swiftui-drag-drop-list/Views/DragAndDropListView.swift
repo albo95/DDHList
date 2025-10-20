@@ -82,47 +82,49 @@ struct DragAndDropListView<ItemType: Transferable & Identifiable, RowView: View>
     
     var body: some View {
         ScrollView {
-            ZStack(alignment: .top) {
-                ConditionalStack(isLazy: isRowHeightFixed, alignment: .leading, spacing: .separatorHeight) {
-                    Spacer()
-                        .frame(height:  .separatorHooverHeight)
-                    
-                    rowWrapper(for: items[0], index: 0)
-                        .readSize { size in
-                            rowHeights[0] = size.height
-                            fixedRowHeight = size.height
-                        }
-                    
-                    ForEach(items.dropFirst().indices, id: \.self) { index in
-                        rowWrapper(for: items[index], index: index)
-                            .conditionalReadSize(!isRowHeightFixed) { size in
-                                rowHeights[index] = size.height
-                            }
-                            .conditionalHeight(isRowHeightFixed, fixedRowHeight)
-                    }
+            ConditionalStack(isLazy: isRowHeightFixed, alignment: .leading, spacing: .separatorHeight) {
+                Spacer()
+                    .frame(height:  .separatorHooverHeight)
+                
+                rowWrapper(for: items[0], index: 0)
                     .readSize { size in
-                        listWidth = size.width
+                        if  rowHeights[0] != size.height {
+                            rowHeights[0] = size.height
+                        }
+                        fixedRowHeight = size.height
                     }
-                    
-                    belowListView.map { AnyView($0()) }
-                    
+                
+                ForEach(items.indices, id: \.self) { index in
+                    if index != 0 {
+                        rowWrapper(for: items[index], index: index)
+                            .conditionalHeight(isRowHeightFixed, fixedRowHeight)
+                            .conditionalReadSize(!isRowHeightFixed) { size in
+                                if  rowHeights[index] != size.height {
+                                    rowHeights[index] = size.height
+                                }
+                            }
+                    }
+                }
+                .readSize { size in
+                    listWidth = size.width
                 }
                 
+                belowListView.map { AnyView($0()) }
+            }
+            .overlay(alignment: .top, content: {
                 
-                GeometryReader { proxy in
+                ConditionalStack(isLazy: isRowHeightFixed, spacing: 0) {
                     separatorView(index: -1)
-                        .frame(maxWidth: .infinity)
-                        .position(x: proxy.size.width / 2, y: .separatorHooverHeight)
                     
                     ForEach(items.indices, id: \.self) { index in
-                        let fixedIncrement = (rowHeight(for: 0)) + CGFloat.separatorHooverHeight
-                        let yPos = (0..<index).reduce(CGFloat(0)) { $0 + rowHeight(for: $1) + CGFloat.separatorHeight } + fixedIncrement
                         separatorView(index: index)
-                            .frame(maxWidth: .infinity)
-                            .position(x: proxy.size.width / 2, y: yPos)
+                            .padding(.top, rowHeight(for: index) - 2 * .separatorHooverHeight)
                     }
                 }
-            }
+                .padding(.bottom, .separatorHooverHeight)
+                
+            })
+            
         }
         .scrollDisabled(isScrollDisabled)
         .simultaneousGesture(DragGesture().onChanged { gesture in

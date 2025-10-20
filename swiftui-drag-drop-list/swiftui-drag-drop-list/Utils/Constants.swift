@@ -10,4 +10,5 @@ import Foundation
 extension CGFloat {
     static let separatorHooverHeight: CGFloat = 8
     static let separatorHeight: CGFloat = 1
+    static let separatorTotalHeight: CGFloat = 2 * separatorHooverHeight + separatorHeight
 }
