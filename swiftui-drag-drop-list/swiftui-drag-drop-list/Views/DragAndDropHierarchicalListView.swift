@@ -312,7 +312,6 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                     path: path,
                     onDrop: resetDragging
                 )
-                .padding(.leading, 30)
                 .zIndex(1)
             }
         }
@@ -394,6 +393,7 @@ struct DragAndDropHierarchicalListView<ItemType: HierarchicalItemType, RowView: 
                 guard currentlyDraggedPath != path, currentlyDraggedPath != path.decrementLast() else { return }
                 dropTargetPath = value ? path : []
             }
+            .padding(.leading, 30)
             .offset(y: (isAboveFirstItem ? -(rowSemiHeights[path.withLast(0)] ?? 0) : rowSemiHeights[path]) ?? 0)
     }
     
