@@ -23,10 +23,27 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
     
     var isDraggedItemAboveItem: Bool { vm.draggedItemPath != nil && vm.draggedItemPath == aboveItemPath }
     var isDraggedItemBelowItem: Bool { vm.draggedItemPath != nil && vm.draggedItemPath == belowItemPath }
+    
+    var dropZoneAboveHeight: CGFloat {
+        isShowingHalfAboveHover ? .interRowHoverHeight/2 : .interRowHoverHeight
+    }
+    
+    var dropZoneBelowHeight: CGFloat {
+        isShowingHalfBelowHover ? .interRowHoverHeight/2 : .interRowHoverHeight
+    }
+    
+    var isShowingHalfAboveHover: Bool {
+        !vm.isItemOfPathExpanded(aboveItemPath) && vm.doesItemExist(at: aboveItemPath)
+    }
+    
+    var isShowingHalfBelowHover: Bool {
+        !vm.expandedItemsIDs.contains(item.id) && vm.doesItemExist(at: belowItemPath)
+    }
+
 
     var body: some View {
         //xxx
-       // ZStack {
+        //ZStack {
             content(item)
                 .opacity(isItemDragged ? 0.2 : 1)
                 .overlay {
@@ -44,13 +61,13 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
                                       onDrag: { vm.onDrag(item) },
                                       previewView: AnyView(content(item)),)
             
-           // pathsLogView
-       // }
+//            pathsLogView
+//        }
     }
     
     var hoverOverlay: some View {
         VStack(spacing: 0) {
-            dropZone(height: .interRowHoverHeight, isActive: isAboveItemTarget) { value in
+            dropZone(height: dropZoneAboveHeight, isActive: isAboveItemTarget) { value in
                 vm.resetTargets()
                 if value {
                     if aboveItemPath?.count == path.count {
@@ -78,7 +95,7 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
                 vm.onDrop()
             }
             
-            dropZone(height: .interRowHoverHeight, isActive: isBelowItemTarget) { value in
+            dropZone(height: dropZoneBelowHeight, isActive: isBelowItemTarget) { value in
                 if value {
                     vm.aboveDropTargetPath = path
                     vm.belowDropTargetPath = belowItemPath

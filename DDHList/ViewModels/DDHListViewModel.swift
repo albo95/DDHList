@@ -51,7 +51,6 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
         return itemsInList.first { $0.value.id == draggedItem.id }?.key
     }
     
-    
     init(items: [ItemType],
          onDelete: @escaping (ItemType) -> Void = {_ in},
          onItemDroppedOnSeparator: @escaping (
@@ -140,5 +139,15 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
         lastDroppedItem = draggedItem
         resetTargets()
         resetRowSwiping()
+    }
+    
+    func isItemOfPathExpanded(_ path: ItemPath?) -> Bool {
+        guard let path, let item = itemsInList[path] else { return false }
+        return expandedItemsIDs.contains(item.id)
+    }
+    
+    func doesItemExist(at path: ItemPath?) -> Bool {
+        guard let path else { return false }
+        return itemsInList[path] != nil
     }
 }

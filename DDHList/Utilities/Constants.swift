@@ -8,5 +8,5 @@
 import Foundation
 
 extension CGFloat {
-    static let interRowHoverHeight: CGFloat = 8
+    static let interRowHoverHeight: CGFloat = 6
 }
