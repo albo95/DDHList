@@ -131,7 +131,6 @@ struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
                 )
             }
         }
-        .padding(.horizontal)
     }
     
     

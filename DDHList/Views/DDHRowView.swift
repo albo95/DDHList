@@ -67,7 +67,7 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
     
     var hoverOverlay: some View {
         VStack(spacing: 0) {
-            dropZone(height: dropZoneAboveHeight, isActive: isAboveItemTarget) { value in
+            dropZone(height: dropZoneAboveHeight, isActive: isAboveItemTarget, isAbove: false) { value in
                 vm.resetTargets()
                 if value {
                     if aboveItemPath?.count == path.count {
@@ -95,7 +95,7 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
                 vm.onDrop()
             }
             
-            dropZone(height: dropZoneBelowHeight, isActive: isBelowItemTarget) { value in
+            dropZone(height: dropZoneBelowHeight, isActive: isBelowItemTarget, isAbove: true) { value in
                 if value {
                     vm.aboveDropTargetPath = path
                     vm.belowDropTargetPath = belowItemPath
@@ -115,14 +115,29 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
     func dropZone(
         height: CGFloat? = nil,
         isActive: Bool,
+        isAbove: Bool = true,
         onTargetChange: @escaping (Bool) -> Void,
         onDrop: @escaping () -> Void
     ) -> some View {
-        Rectangle()
-            .frame(height: height)
-            .foregroundStyle(vm.hoverColor)
-            .opacity(isActive ? 1 : 0.001)
-            .dropDestination(for: ItemType.self) { draggedItem, _ in
+        VStack(spacing: 0) {
+            if isAbove {
+                Rectangle()
+                    .frame(height: 4)
+                    .opacity(0.0001)
+            }
+                Rectangle()
+                    .frame(height: height)
+                    .foregroundStyle(vm.hoverColor)
+            
+            if !isAbove {
+                Rectangle()
+                    .frame(height: 4)
+                    .opacity(0.0001)
+            }
+            
+        }
+        .opacity(isActive ? 1 : 0.001)
+        .dropDestination(for: ItemType.self) { draggedItem, _ in
                     onDrop()
                 return true
             } isTargeted: { onTargetChange($0) }
