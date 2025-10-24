@@ -9,8 +9,8 @@ import Foundation
 import SwiftUI
 
 @available(iOS 16.0, *)
-struct DDListContainerView: View {
-    var body: some View {
+public struct DDListContainerView: View {
+    public var body: some View {
         TabView {
             DDListExamplePickerView()
                 .tabItem {
