@@ -70,13 +70,13 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         .scrollDisabled(isScrollDisabled)
         .simultaneousGesture(DragGesture()
             .onChanged { gesture in
-                if vm.draggedItem != nil {
-                    vm.draggedItem = nil
-                }
                 totalTranslationWidth += abs(gesture.translation.width)
                 totalTranslationHeight += abs(gesture.translation.height)
                 isScrollDisabled = totalTranslationWidth > totalTranslationHeight }
             .onEnded {_ in
+                if vm.draggedItem != nil {
+                    vm.draggedItem = nil
+                }
                 isScrollDisabled = false
                 totalTranslationWidth = 0
                 totalTranslationHeight = 0
@@ -171,12 +171,12 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         .opacity(item.children.isEmpty ? 0 : 1)
     }
     
-//    private var targetElementsLogView: some View {
-//        VStack {
-//            Text("Targeted item: \(vm.targetItem)")
-//            Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
-//            Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
-//        }
-//        .padding()
-//    }
+    //    private var targetElementsLogView: some View {
+    //        VStack {
+    //            Text("Targeted item: \(vm.targetItem)")
+    //            Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
+    //            Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
+    //        }
+    //        .padding()
+    //    }
 }
