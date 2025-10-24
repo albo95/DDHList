@@ -1,12 +1,13 @@
 //
 //  IntArrayExtension.swift
-//  DDHList
+//  DDList
 //
 //  Created by Alberto Bruno on 22/10/25.
 //
 
 import Foundation
 
+@available(iOS 16.0, *)
 extension Array where Element == Int {
     func withLast(_ newValue: Int) -> [Int] {
         guard !self.isEmpty else { return self }

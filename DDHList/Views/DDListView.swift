@@ -1,6 +1,6 @@
 //
-//  DDHListView.swift
-//  DDHList
+//  DDListView.swift
+//  DDList
 //
 //  Created by Alberto Bruno on 21/10/25.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @available(iOS 16.0, *)
-public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
+public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowContent: View>: View {
     @StateObject private var vm: DDHListViewModel<ItemType>
     @Binding var items: [ItemType]
     @Binding var isDeletionEnabled: Bool
@@ -24,17 +24,17 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     @State private var totalTranslationHeight: CGFloat = 0
     
     public init(items: Binding<[ItemType]>,
-                rowView: @escaping (ItemType) -> RowContent,
-                onDelete: @escaping (ItemType) -> Void = {_ in},
-                onItemDroppedOnSeparator: @escaping (
-                    _ draggedItem: ItemType,
-                    _ aboveItem: ItemType?,
-                    _ belowItem: ItemType?
-                ) -> Void = { _, _, _ in },
-                onItemDroppedOnOtherItem: @escaping (
-                    _ draggedItem: ItemType,
-                    _ targetItem: ItemType
-                ) -> Void = { _, _ in },
+         rowView: @escaping (ItemType) -> RowContent,
+         onDelete: @escaping (ItemType) -> Void = {_ in},
+         onItemDroppedOnSeparator: @escaping (
+        _ draggedItem: ItemType,
+        _ aboveItem: ItemType?,
+        _ belowItem: ItemType?
+    ) -> Void = { _, _, _ in },
+         onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+         ) -> Void = { _, _ in },
                 belowListView: (() -> any View)? = nil,
                 deleteView: (() -> any View)? = nil,
                 hoverColor: Color = .blue,
@@ -57,7 +57,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         ))
     }
     
-    @available(iOS 16.0, *)
     public var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -68,14 +67,14 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
             .environmentObject(vm)
         }
         .scrollDisabled(isScrollDisabled)
-        .simultaneousGesture(DragGesture()
-            .onChanged { gesture in
-                if vm.draggedItem != nil {
-                    vm.draggedItem = nil
-                }
-                totalTranslationWidth += abs(gesture.translation.width)
-                totalTranslationHeight += abs(gesture.translation.height)
-                isScrollDisabled = totalTranslationWidth > totalTranslationHeight }
+        .simultaneousGesture(DragGesture().onChanged { gesture in
+            if vm.draggedItem != nil {
+                vm.draggedItem = nil
+            }
+            totalTranslationWidth += abs(gesture.translation.width)
+            totalTranslationHeight += abs(gesture.translation.height)
+            isScrollDisabled = totalTranslationWidth > totalTranslationHeight
+        }
             .onEnded {_ in
                 isScrollDisabled = false
                 totalTranslationWidth = 0
@@ -99,7 +98,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         .onChange(of: isDropOnItemEnabled) { newValue in
             vm.isDropOnItemEnabled = newValue
         }
-        targetElementsLogView
+        //targetElementsLogView
     }
     
     @ViewBuilder
@@ -112,11 +111,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
             let belowItemPath: ItemPath = path.withLast(index + 1)
             
             hierarchicalRowView(item: item, itemPath: currentPath, aboveItemPath: aboveItemPath, belowItemPath: belowItemPath, index: index)
-            
-            if vm.expandedItemsIDs.contains(item.id) {
-                AnyView(hierarchicalListSection(recursiveItems: item.children, path: currentPath + [0], prevAboveItemPath: currentPath))
-                    .padding(.leading, 40)
-            }
         }
     }
     
@@ -124,9 +118,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     private func hierarchicalRowView(item: ItemType, itemPath: ItemPath, aboveItemPath: ItemPath, belowItemPath: ItemPath, index: Int) -> some View {
 
         HStack(alignment: .center, spacing: 0) {
-            expandButtonView(item: item)
-                .padding(.leading)
-            
             VStack(spacing: 0) {
                 DDHRowView<ItemType, RowContent>(
                     content: { rowView($0) },
@@ -156,26 +147,12 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         }
     }
     
-    @ViewBuilder
-    private func expandButtonView(item: ItemType) -> some View {
-        Button(action: {
-            withAnimation {
-                vm.toggleElementExpanded(itemID: item.id)
-            }
-        }, label: {
-            Image(systemName: "chevron.down")
-                .rotationEffect(Angle(degrees:
-                                        vm.expandedItemsIDs.contains(item.id) ? 0 : -90))
-        })
-        .opacity(item.children.isEmpty ? 0 : 1)
-    }
-    
-        private var targetElementsLogView: some View {
-            VStack {
-                Text("Targeted item: \(vm.targetItem)")
-                Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
-                Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
-            }
-            .padding()
-        }
+//    private var targetElementsLogView: some View {
+//        VStack {
+//            Text("Targeted item: \(vm.targetItem)")
+//            Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
+//            Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
+//        }
+//        .padding()
+//    }
 }

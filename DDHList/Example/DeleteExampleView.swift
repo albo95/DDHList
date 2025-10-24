@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct DeleteExampleView: View {
     var body: some View {
         HStack {
@@ -16,13 +17,9 @@ struct DeleteExampleView: View {
             
             Rectangle()
                 .foregroundStyle(.red)
-                .frame(width: 60)
+                .frame(width: 80)
         }
         .background(.red)
         .offset(x: 80)
     }
-}
-
-#Preview {
-    DeleteExampleView()
 }

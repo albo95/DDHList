@@ -1,6 +1,6 @@
 //
 //  SwipeToDeleteModifier.swift
-//  DDHList
+//  DDList
 //
 //  Created by Alberto Bruno on 22/10/25.
 //
@@ -8,24 +8,36 @@
 import Foundation
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct SwipeToDeleteModifier: ViewModifier {
+    @Binding var isSwiped: Bool
+    @State private var offsetX: CGFloat
+    
     let onDelete: () -> Void
     let isActive: Bool
     let deleteView: AnyView?
-    let maxOffset: CGFloat = 60
-    let threshold: CGFloat = 20
-    let gestureSlower: CGFloat = 0.1
+    let maxOffset: CGFloat
+    let threshold: CGFloat
+    let gestureSlower: CGFloat
+
     
-    @Binding var isSwiped: Bool
-    
-    @State private var offsetX: CGFloat
-    
-    init(onDelete: @escaping () -> Void, isActive: Bool = true, isSwiped: Binding<Bool>, deleteView: AnyView? = nil) {
+    init(
+        onDelete: @escaping () -> Void,
+        isActive: Bool = true,
+        isSwiped: Binding<Bool>,
+        deleteView: AnyView? = nil,
+        maxOffset: CGFloat = 80,
+        threshold: CGFloat = 20,
+        gestureSlower: CGFloat = 0.1
+    ) {
         self.onDelete = onDelete
-        self.offsetX = 60
         self.isActive = isActive
-        self.deleteView = deleteView
         self._isSwiped = isSwiped
+        self.deleteView = deleteView
+        self.maxOffset = maxOffset
+        self.offsetX = maxOffset
+        self.threshold = threshold
+        self.gestureSlower = gestureSlower
     }
     
     func body(content: Content) -> some View {
@@ -88,10 +100,10 @@ struct SwipeToDeleteModifier: ViewModifier {
                     
                     Rectangle()
                         .foregroundStyle(.red)
-                        .frame(width: 60)
+                        .frame(width: maxOffset - threshold)
                 }
                 .background(.red)
-                .offset(x: 80)
+                .offset(x: maxOffset)
             }
         }
     }
@@ -110,6 +122,8 @@ struct SwipeToDeleteModifier: ViewModifier {
         }
     }
 }
+
+@available(iOS 16.0, *)
 extension View {
     func swipeToDelete(
         onDelete: @escaping () -> Void,

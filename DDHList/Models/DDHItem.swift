@@ -7,6 +7,7 @@
 
 import CoreTransferable
 
-protocol DDHItem: Transferable & Identifiable & Equatable {
+@available(iOS 16.0, *)
+public protocol DDHItem: Transferable & Identifiable & Equatable {
     var children: [Self] { get set }
 }

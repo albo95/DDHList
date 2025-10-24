@@ -1,6 +1,6 @@
 //
 //  ConditionalDraggableModifier.swift
-//  DDHList
+//  DDList
 //
 //  Created by Alberto Bruno on 22/10/25.
 //
@@ -9,6 +9,7 @@ import Foundation
 import CoreTransferable
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct ConditionalDraggableModifier<ItemType: Transferable & Identifiable>: ViewModifier {
     let item: ItemType
     let isEnabled: Bool
@@ -22,7 +23,7 @@ struct ConditionalDraggableModifier<ItemType: Transferable & Identifiable>: View
         if isEnabled {
             if previewView == nil {
                 content
-                    .draggable( draggableFunction())
+                    .draggable(draggableFunction())
             } else {
                 content
                     .draggable( draggableFunction(),
@@ -50,6 +51,7 @@ struct ConditionalDraggableModifier<ItemType: Transferable & Identifiable>: View
     }
 }
 
+@available(iOS 16.0, *)
 extension View {
     func conditionalDraggable<ItemType: Transferable & Identifiable>(
         _ item: ItemType,

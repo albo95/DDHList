@@ -1,14 +1,16 @@
 //
-//  DDHListExample.swift
-//  DDHList
+//  DDListExamplePickerView.swift
+//  DDList
 //
 //  Created by Alberto Bruno on 22/10/25.
 //
 
 import SwiftUI
 
-struct DDHListExamplePicker: View {
+@available(iOS 16.0, *)
+struct DDListExamplePickerView: View {
     @State private var selectedView: Int = 0
+    @State private var items = ItemExample.mockItems
     
     var body: some View {
         VStack {
@@ -42,25 +44,24 @@ struct DDHListExamplePicker: View {
     }
     
     // MARK: - Views
-    
     var deleteOnly: some View {
-        DDHListView<ItemExample, RowExampleView>(
-            items: ItemExample.mockItems,
+        DDListView<ItemExample, RowExampleView>(
+            items: $items,
             rowView: { RowExampleView(item: $0) },
             onDelete: { item in
                 print("Deleted item: \(item.name)")
             },
             deleteView: { DeleteExampleView() },
-            isDeletionEnabled: true,
-            isDropOnSeparatorEnabled: false,
-            isDropOnItemEnabled: false,
-            hoverColor: .blue
+            hoverColor: .blue,
+            isDeletionEnabled: .constant(true),
+            isDropOnSeparatorEnabled: .constant(false),
+            isDropOnItemEnabled: .constant(false)
         )
     }
     
     var deleteAndDragSeparator: some View {
-        DDHListView<ItemExample, RowExampleView>(
-            items: ItemExample.mockItems,
+        DDListView<ItemExample, RowExampleView>(
+            items: $items,
             rowView: { RowExampleView(item: $0) },
             onDelete: { item in
                 print("Deleted item: \(item.name)")
@@ -76,16 +77,14 @@ struct DDHListExamplePicker: View {
                     print("Dragged \(dragged.name) dropped on empty list")
                 }
             },
-            isDeletionEnabled: true,
-            isDropOnSeparatorEnabled: true,
-            isDropOnItemEnabled: false,
-            hoverColor: .orange
+            hoverColor: .orange,
+            isDropOnItemEnabled: .constant(false)
         )
     }
 
     var deleteAndDragSeparatorAndItem: some View {
-        DDHListView<ItemExample, RowExampleView>(
-            items: ItemExample.mockItems,
+        DDListView<ItemExample, RowExampleView>(
+            items: $items,
             rowView: { RowExampleView(item: $0) },
             onDelete: { item in
                 print("Deleted item: \(item.name)")
@@ -104,28 +103,18 @@ struct DDHListExamplePicker: View {
             onItemDroppedOnOtherItem: { dragged, target in
                 print("Dragged \(dragged.name) dropped on target \(target.name)")
             },
-            isDeletionEnabled: true,
-            isDropOnSeparatorEnabled: true,
-            isDropOnItemEnabled: true,
             hoverColor: .green
         )
     }
     
     var dragItemOnly: some View {
-        DDHListView<ItemExample, RowExampleView>(
-            items: ItemExample.mockItems,
+        DDListView<ItemExample, RowExampleView>(
+            items: $items,
             rowView: { RowExampleView(item: $0) },
             onItemDroppedOnOtherItem: { dragged, target in
                 print("Dragged \(dragged.name) dropped on target \(target.name)")
             },
-            isDeletionEnabled: false,
-            isDropOnSeparatorEnabled: false,
-            isDropOnItemEnabled: true,
             hoverColor: .purple
         )
     }
-}
-
-#Preview {
-    DDHListExamplePicker()
 }

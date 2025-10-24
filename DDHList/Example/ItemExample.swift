@@ -1,6 +1,6 @@
 //
 //  ItemExample.swift
-//  DDHList
+//  DDList
 //
 //  Created by Alberto Bruno on 21/10/25.
 //
@@ -9,7 +9,8 @@ import Foundation
 import CoreTransferable
 import UniformTypeIdentifiers
 
-struct ItemExample: DDHItem, Hashable, Codable {
+@available(iOS 16.0, *)
+struct ItemExample: Transferable, Identifiable, Equatable, Hashable, Codable, DDHItem {
     let name: String
     var id: String { name }
     
@@ -20,9 +21,12 @@ struct ItemExample: DDHItem, Hashable, Codable {
     }
 }
 
+@available(iOS 16.0, *)
 extension ItemExample {
+    @MainActor
     static let mockItem: ItemExample = ItemExample(name: "Mock")
     
+    @MainActor
     static let mockItems: [ItemExample] = [
         ItemExample(
             name: "Documents",
@@ -71,6 +75,7 @@ extension ItemExample {
         ItemExample(name: "Desktop")
     ]
     
+    @MainActor
     static let repeatedMockItems: [ItemExample] = {
         (0..<10).flatMap { repetitionIndex in
             mockItems.map { item in

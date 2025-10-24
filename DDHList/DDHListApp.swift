@@ -11,7 +11,7 @@ import SwiftUI
 struct DDHListApp: App {
     var body: some Scene {
         WindowGroup {
-            DDHListExamplePicker()
+            DDListContainerView()
         }
     }
 }

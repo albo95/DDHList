@@ -1,33 +1,35 @@
 //
-//  DDHListViewModel.swift
-//  DDHList
+//  DDListViewModel.swift
+//  DDList
 //
 //  Created by Alberto Bruno on 21/10/25.
 //
 
 import Foundation
 import SwiftUI
+import Combine
 
-class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
-    let items: [ItemType]
+@available(iOS 16.0, *)
+class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: ObservableObject {
     let onDelete: (ItemType) -> Void
     let onItemDroppedOnSeparator: (_ draggedItem: ItemType, _ aboveItem: ItemType?, _ belowItem: ItemType?) -> Void
     let onItemDroppedOnOtherItem: (_ draggedItem: ItemType, _ targetItem: ItemType) -> Void
     let hoverColor: Color
-    let isDropOnSeparatorEnabled: Bool
-    let isDropOnItemEnabled: Bool
-    let isDeletionEnabled: Bool
     
     var lastDroppedItem: ItemType? = nil
     
-    @Published var itemsInList: [ItemPath: ItemType] = [:]
-    @Published var aboveDropTargetPath: ItemPath? = nil
-    @Published var belowDropTargetPath: ItemPath? = nil
-    @Published var expandedItemsIDs: [ItemType.ID] = [] {
+    @Published var items: [ItemType] = [] {
         didSet {
             updateItemsInList()
         }
     }
+    @Published var isDeletionEnabled: Bool = true
+    @Published var isDropOnSeparatorEnabled: Bool = true
+    @Published var isDropOnItemEnabled: Bool = true
+    @Published var itemsInList: [ItemPath: ItemType] = [:]
+    @Published var aboveDropTargetPath: ItemPath? = nil
+    @Published var belowDropTargetPath: ItemPath? = nil
+    @Published var expandedItemsIDs: [ItemType.ID] = []
     @Published var currentlySwipedRowPath: ItemPath? = nil
     @Published var targetItem: ItemType? = nil
     @Published var draggedItem: ItemType? = nil {
@@ -37,10 +39,7 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
             }
         }
     }
-    @Published var lastDraggedItem: ItemType? = nil
-    
-    private var isFirstOnDrag: Bool = true
-    
+        
     var targetItemPath: ItemPath? {
         guard let targetItem else { return nil }
         return itemsInList.first { $0.value.id == targetItem.id }?.key
@@ -51,8 +50,9 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
         return itemsInList.first { $0.value.id == draggedItem.id }?.key
     }
     
-    init(items: [ItemType],
-         onDelete: @escaping (ItemType) -> Void = {_ in},
+    private var cancellables = Set<AnyCancellable>()
+
+    init(onDelete: @escaping (ItemType) -> Void = {_ in},
          onItemDroppedOnSeparator: @escaping (
             _ draggedItem: ItemType,
             _ aboveItem: ItemType?,
@@ -62,19 +62,12 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
             _ draggedItem: ItemType,
             _ targetItem: ItemType
          ) -> Void = { _, _ in },
-         isDropOnSeparatorEnabled: Bool = true,
-         isDropOnItemEnabled: Bool = true,
-         isDeletionEnabled: Bool = true,
          hoverColor: Color = .blue) {
-        self.items = items
+        
         self.onDelete = onDelete
         self.onItemDroppedOnSeparator = onItemDroppedOnSeparator
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.hoverColor = hoverColor
-        self.isDropOnSeparatorEnabled = isDropOnSeparatorEnabled
-        self.isDropOnItemEnabled = isDropOnItemEnabled
-        self.isDeletionEnabled = isDeletionEnabled
-        self.updateItemsInList()
     }
     
     func updateItemsInList() {
@@ -85,8 +78,8 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
                 let currentPath = path + [index]
                 itemsInList[currentPath] = item
                 
-                if !item.children.isEmpty && expandedItemsIDs.contains(item.id) {
-                    traverse(items: item.children, path: currentPath)
+                if let itemWithChildren = item as? any DDHItem {
+                    traverse(items: itemWithChildren.children as! [ItemType], path: currentPath)
                 }
             }
         }
@@ -106,8 +99,6 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
         } else {
             expandedItemsIDs.append(itemID)
         }
-        
-        self.updateItemsInList()
     }
     
     func resetRowSwiping() {
@@ -115,28 +106,30 @@ class DDHListViewModel<ItemType: DDHItem>: ObservableObject {
     }
     
     func onDrag(_ item: ItemType) {
-        if lastDroppedItem == item {
+        if item == lastDroppedItem {
             draggedItem = nil
             lastDroppedItem = nil
         } else {
             draggedItem = item
         }
-        
+
         resetTargets()
         resetRowSwiping()
     }
     
-    func onDrop() {
-        if let targetItem, isDropOnItemEnabled, let draggedItem {
-            onItemDroppedOnOtherItem(draggedItem, targetItem)
-        } else if isDropOnSeparatorEnabled, let draggedItem {
+    func onDrop(_ droppedItem: ItemType) {
+        if let targetItem, isDropOnItemEnabled, targetItem != droppedItem {
+            onItemDroppedOnOtherItem(droppedItem, targetItem)
+        } else if isDropOnSeparatorEnabled {
             let aboveItem = aboveDropTargetPath.flatMap { itemsInList[$0] }
             let belowItem = belowDropTargetPath.flatMap { itemsInList[$0] }
             
-            onItemDroppedOnSeparator(draggedItem, aboveItem, belowItem)
+            if aboveItem != nil || belowItem != nil {
+                onItemDroppedOnSeparator(droppedItem, aboveItem, belowItem)
+            }
         }
         
-        lastDroppedItem = draggedItem
+        lastDroppedItem = droppedItem
         resetTargets()
         resetRowSwiping()
     }

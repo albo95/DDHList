@@ -1,13 +1,14 @@
 //
-//  DDHSeparatorView.swift
-//  DDHList
+//  DDSeparatorView.swift
+//  DDList
 //
 //  Created by Alberto Bruno on 21/10/25.
 //
 
 import SwiftUI
 
-struct DDHSeparatorView<ItemType: DDHItem>: View {
+@available(iOS 16.0, *)
+struct DDHSeparatorView<ItemType: Transferable & Identifiable & Equatable>: View {
     @EnvironmentObject var vm: DDHListViewModel<ItemType>
     let aboveItemPath: ItemPath
     let belowItemPath: ItemPath
@@ -22,22 +23,23 @@ struct DDHSeparatorView<ItemType: DDHItem>: View {
     
     var body: some View {
         //xxx
-        //ZStack {
+       // ZStack {
         Rectangle()
             .frame(height: 1)
             .foregroundStyle(isShowingHover ? vm.hoverColor : Color.gray)
             .opacity(isShowingHover ? 1 : isBetweenItemAndChildren ? 0.0001 : 0.2)
-            //pathsLogView
-        //}
-        .dropDestination(for: ItemType.self) { draggedItem, _ in
+//            pathsLogView
+//        }
+        .dropDestination(for: ItemType.self) { droppedItems, _ in
+            guard let droppedItem = droppedItems.first else { return false }
             vm.aboveDropTargetPath = aboveItemPath
             vm.belowDropTargetPath = belowItemPath
-            vm.onDrop()
+            vm.onDrop(droppedItem)
             return true
         } isTargeted: { value in
             vm.resetTargets()
             if value {
-                if !isBetweenItemAndChildren {
+                if !isBetweenItemAndChildren && vm.draggedItemPath != aboveItemPath && vm.draggedItemPath != belowItemPath {
                     vm.aboveDropTargetPath = aboveItemPath
                     vm.belowDropTargetPath = belowItemPath
                 }
@@ -51,7 +53,7 @@ struct DDHSeparatorView<ItemType: DDHItem>: View {
                 .foregroundStyle(vm.hoverColor)
                 .opacity(isShowingHover ? 1 : 0.001)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
+
             VStack {
                 Text("\(aboveItemPath)")
                     .font(.caption)
