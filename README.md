@@ -1,41 +1,54 @@
-# 🧩 SwiftUI DDHList – Drag and Drop Hierarchical List
+# 🧩 SwiftUI DDHList
 
-**SwiftUI DDHList** is a simple **SwiftUI UI component** example that demonstrates how to build a **list view** supporting:
+**SwiftUI DDHList** is a lightweight and flexible SwiftUI component designed to showcase advanced list behaviors such as:
 
 - 🖱️ **Drag & Drop** reordering  
-- 🧱 **Hierarchical structures** with nested sections  
+- 🧱 **Hierarchical structures** with nested children  
 - 🗑️ **Swipe-to-delete** interactions  
-- 📱 A clean **SwiftUI Tab Bar** to switch between examples  
+- 📱 **Tabbed example interface** to explore all modes  
+- 💡 Built 100% in **SwiftUI**, no UIKit bridging
 
 ---
 
-## 💡 About
+## 📖 Overview
 
-This repository is **UI-only** — it focuses on the **visual and interactive behavior** of a draggable list.  
-The component provides all the necessary information about **where an item has been dropped** (e.g., between which indices or relative to which element).  
+This package provides two main list components:
 
-However, the **actual logic for updating the data model** (e.g., modifying your array or hierarchy) is **delegated to the user** of this component.  
-In other words, you decide how the list’s data should change after a drag-and-drop event.
+| Component | Description |
+|------------|-------------|
+| `DDListView` | A **flat list** supporting drag & drop between items and swipe-to-delete |
+| `DDHListView` | A **hierarchical list** that supports nested items with expand/collapse and reordering at multiple levels |
 
----
+Both components are **UI-only** — they manage the drag & drop visuals, feedback, and gesture states, but **you control how your data updates** when an item is dropped or deleted.
 
-## 🧭 Hierarchical Drag & Drop Behavior
-
-In the **hierarchical version**, drag and drop allows flexible reordering:
-- 🔹 Move an element **between items** on the same level  
-- 🔹 Drop an element **as a child** of another item  
-- 🔹 Drop an element **between existing children** of an item  
-
-This makes it easy to build and manage complex nested lists where items can become parents or children dynamically.
+This design gives you full flexibility to define how items are structured or moved inside your own model.
 
 ---
 
-## 🧩 Included Examples
+## ⚙️ Features
 
-1. **`DragDropListExampleView`** — a simple list with drag & drop and swipe-to-delete  
-2. **`HierarchicalDragDropListExampleView`** — a hierarchical (multi-level) list supporting nested drag & drop  
+### 🖱️ Drag & Drop
+- Drag and drop any list item
+- Detect precise drop targets:
+  - Between items (separator)
+  - On another item (make it a child or replace it)
+- Visual hover feedback with configurable `hoverColor`
 
----
+### 🧱 Hierarchical Support
+- Expandable and collapsible sections
+- Support for nested children (via your `ItemType`’s `children` property)
+- Works recursively at any level
+
+### 🗑️ Swipe to Delete
+- Customizable delete button (`deleteView`)
+- Smooth spring animation
+- Optional enable/disable with `isDeletionEnabled`
+
+### 🧭 Drop Context Awareness
+The component provides context for every drop event:
+```swift
+onItemDroppedOnSeparator: { dragged, above, below in ... }
+onItemDroppedOnOtherItem: { dragged, target in ... }
 
 ## 🧱 Use Case
 
