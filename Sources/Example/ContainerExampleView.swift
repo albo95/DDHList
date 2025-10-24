@@ -10,6 +10,9 @@ import SwiftUI
 
 @available(iOS 16.0, *)
 public struct DDListContainerView: View {
+    
+    public init() {}
+    
     public var body: some View {
         TabView {
             DDListExamplePickerView()
