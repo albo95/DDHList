@@ -99,7 +99,8 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         .onChange(of: isDropOnItemEnabled) { newValue in
             vm.isDropOnItemEnabled = newValue
         }
-        targetElementsLogView
+        //xxx
+        //targetElementsLogView
     }
     
     @ViewBuilder
@@ -122,7 +123,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     
     @ViewBuilder
     private func hierarchicalRowView(item: ItemType, itemPath: ItemPath, aboveItemPath: ItemPath, belowItemPath: ItemPath, index: Int) -> some View {
-
+        
         HStack(alignment: .center, spacing: 0) {
             expandButtonView(item: item)
                 .padding(.leading)
@@ -170,12 +171,12 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         .opacity(item.children.isEmpty ? 0 : 1)
     }
     
-        private var targetElementsLogView: some View {
-            VStack {
-                Text("Targeted item: \(vm.targetItem)")
-                Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
-                Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
-            }
-            .padding()
-        }
+//    private var targetElementsLogView: some View {
+//        VStack {
+//            Text("Targeted item: \(vm.targetItem)")
+//            Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
+//            Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
+//        }
+//        .padding()
+//    }
 }
