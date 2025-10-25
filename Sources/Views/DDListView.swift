@@ -25,17 +25,17 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     @State private var totalTranslationHeight: CGFloat = 0
     
     public init(items: Binding<[ItemType]>,
-         rowView: @escaping (ItemType) -> RowContent,
-         onDelete: @escaping (ItemType) -> Void = {_ in},
-         onItemDroppedOnSeparator: @escaping (
-        _ draggedItem: ItemType,
-        _ aboveItem: ItemType?,
-        _ belowItem: ItemType?
-    ) -> Void = { _, _, _ in },
-         onItemDroppedOnOtherItem: @escaping (
-            _ draggedItem: ItemType,
-            _ targetItem: ItemType
-         ) -> Void = { _, _ in },
+                rowView: @escaping (ItemType) -> RowContent,
+                onDelete: @escaping (ItemType) -> Void = {_ in},
+                onItemDroppedOnSeparator: @escaping (
+                    _ draggedItem: ItemType,
+                    _ aboveItem: ItemType?,
+                    _ belowItem: ItemType?
+                ) -> Void = { _, _, _ in },
+                onItemDroppedOnOtherItem: @escaping (
+                    _ draggedItem: ItemType,
+                    _ targetItem: ItemType
+                ) -> Void = { _, _ in },
                 belowListView: (() -> any View)? = nil,
                 deleteView: (() -> any View)? = nil,
                 rowBackgroundView: (() -> any View)? = nil,
@@ -123,7 +123,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
             rowBackgroundView.map { AnyView($0()) }
             
             VStack(spacing: 0) {
-                DDHRowView<ItemType, RowContent>(
+                DDRowView<ItemType, RowContent>(
                     content: { rowView($0) },
                     item: item,
                     path: itemPath,
@@ -145,18 +145,19 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
                 
                 DDHSeparatorView<ItemType>(
                     aboveItemPath: itemPath,
-                    belowItemPath: belowItemPath
-                )
+                    belowItemPath: belowItemPath)
+                .padding(.leading)
+                
             }
         }
     }
     
-//    private var targetElementsLogView: some View {
-//        VStack {
-//            Text("Targeted item: \(vm.targetItem)")
-//            Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
-//            Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
-//        }
-//        .padding()
-//    }
+    //    private var targetElementsLogView: some View {
+    //        VStack {
+    //            Text("Targeted item: \(vm.targetItem)")
+    //            Text("Above Drop Target Path: \(vm.aboveDropTargetPath)")
+    //            Text("Below Drop Target Path: \(vm.belowDropTargetPath)")
+    //        }
+    //        .padding()
+    //    }
 }

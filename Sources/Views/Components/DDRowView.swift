@@ -1,5 +1,5 @@
 //
-//  DDHRowView.swift
+//  DDRowView.swift
 //  DDHList
 //
 //  Created by Alberto Bruno on 21/10/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @available(iOS 16.0, *)
-struct DDHRowView<ItemType: DDHItem, Content: View>: View {
+struct DDRowView<ItemType: Transferable & Identifiable & Equatable, Content: View>: View {
     @EnvironmentObject var vm: DDHListViewModel<ItemType>
     
     let content: (ItemType) -> Content
@@ -45,28 +45,23 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
     var body: some View {
         //xxx
         // ZStack {
-        HStack(alignment: .center, spacing: 0) {
-            expandButtonView(item: item)
-                .padding(.leading)
-            
-            content(item)
-        }
-        .opacity(isItemDragged ? 0.2 : 1)
-        .overlay {
-            hoverOverlay
-                .opacity(isItemDragged ? 0 : 1)
-                .allowsHitTesting(vm.draggedItem != nil)
-        }
-        .background(
-            Rectangle()
-                .foregroundStyle(vm.hoverColor)
-                .opacity(isOnItemTarget ? 1 : 0.001)
-                .opacity((isItemDragged || !vm.isDropOnItemEnabled) ? 0.001 : 1)
-        )
-        .conditionalDraggable(item,
-                              isEnabled: vm.isDropOnItemEnabled || vm.isDropOnSeparatorEnabled,
-                              onDrag: { vm.onDrag(item) },
-                              previewView: AnyView(content(item)),)
+        content(item)
+            .opacity(isItemDragged ? 0.2 : 1)
+            .overlay {
+                hoverOverlay
+                    .opacity(isItemDragged ? 0 : 1)
+                    .allowsHitTesting(vm.draggedItem != nil)
+            }
+            .background(
+                Rectangle()
+                    .foregroundStyle(vm.hoverColor)
+                    .opacity(isOnItemTarget ? 1 : 0.001)
+                    .opacity((isItemDragged || !vm.isDropOnItemEnabled) ? 0.001 : 1)
+            )
+            .conditionalDraggable(item,
+                                  isEnabled: vm.isDropOnItemEnabled || vm.isDropOnSeparatorEnabled,
+                                  onDrag: { vm.onDrag(item) },
+                                  previewView: AnyView(content(item)),)
         
         // pathsLogView
         //  }
@@ -169,20 +164,6 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
-    }
-    
-    @ViewBuilder
-    private func expandButtonView(item: ItemType) -> some View {
-        Button(action: {
-            withAnimation {
-                vm.toggleElementExpanded(itemID: item.id)
-            }
-        }, label: {
-            Image(systemName: "chevron.down")
-                .rotationEffect(Angle(degrees:
-                                        vm.expandedItemsIDs.contains(item.id) ? 0 : -90))
-        })
-        .opacity(item.children.isEmpty ? 0 : 1)
     }
 }
 

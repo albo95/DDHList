@@ -129,52 +129,34 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         ZStack {
             rowBackgroundView.map { AnyView($0()) }
             
-            HStack(alignment: .center, spacing: 0) {
-                expandButtonView(item: item)
-                    .padding(.leading)
+            VStack(spacing: 0) {
+                DDHRowView<ItemType, RowContent>(
+                    content: { rowView($0) },
+                    item: item,
+                    path: itemPath,
+                    aboveItemPath: aboveItemPath,
+                    belowItemPath: belowItemPath
+                )
+                .swipeToDelete(onDelete: { vm.onDelete(item) },
+                               isActive: vm.isDeletionEnabled,
+                               deleteView: deleteView.map { AnyView($0()) },
+                               isSwiped: Binding(
+                                get: { vm.currentlySwipedRowPath == itemPath },
+                                set: { newValue in
+                                    if newValue {
+                                        vm.currentlySwipedRowPath = itemPath
+                                    } else if vm.currentlySwipedRowPath == itemPath {
+                                        vm.resetRowSwiping()
+                                    }
+                                }))
                 
-                VStack(spacing: 0) {
-                    DDHRowView<ItemType, RowContent>(
-                        content: { rowView($0) },
-                        item: item,
-                        path: itemPath,
-                        aboveItemPath: aboveItemPath,
-                        belowItemPath: belowItemPath
-                    )
-                    .swipeToDelete(onDelete: { vm.onDelete(item) },
-                                   isActive: vm.isDeletionEnabled,
-                                   deleteView: deleteView.map { AnyView($0()) },
-                                   isSwiped: Binding(
-                                    get: { vm.currentlySwipedRowPath == itemPath },
-                                    set: { newValue in
-                                        if newValue {
-                                            vm.currentlySwipedRowPath = itemPath
-                                        } else if vm.currentlySwipedRowPath == itemPath {
-                                            vm.resetRowSwiping()
-                                        }
-                                    }))
-                    
-                    DDHSeparatorView<ItemType>(
-                        aboveItemPath: itemPath,
-                        belowItemPath: belowItemPath
-                    )
-                }
+                DDHSeparatorView<ItemType>(
+                    aboveItemPath: itemPath,
+                    belowItemPath: belowItemPath
+                )
+                .padding(.leading)
             }
         }
-    }
-    
-    @ViewBuilder
-    private func expandButtonView(item: ItemType) -> some View {
-        Button(action: {
-            withAnimation {
-                vm.toggleElementExpanded(itemID: item.id)
-            }
-        }, label: {
-            Image(systemName: "chevron.down")
-                .rotationEffect(Angle(degrees:
-                                        vm.expandedItemsIDs.contains(item.id) ? 0 : -90))
-        })
-        .opacity(item.children.isEmpty ? 0 : 1)
     }
     
     //    private var targetElementsLogView: some View {
