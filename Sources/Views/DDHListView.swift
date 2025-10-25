@@ -15,7 +15,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     @Binding var isDropOnSeparatorEnabled: Bool
     @Binding var isDropOnItemEnabled: Bool
     @Binding var isShowingExpander: Bool
-    @Binding var expandedItemIDs: Set<ItemType.ID>?
+    @Binding var expandedItemIDs: Set<ItemType.ID>
     
     let rowView: (ItemType) -> RowContent
     let deleteView: (() -> any View)?
@@ -49,7 +49,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         isDropOnSeparatorEnabled: Binding<Bool> = .constant(true),
         isDropOnItemEnabled: Binding<Bool> = .constant(true),
         isShowingExpander: Binding<Bool> = .constant(true),
-        expandedItemIDs: Binding<Set<ItemType.ID>?> = .constant(nil)
+        expandedItemIDs: Binding<Set<ItemType.ID>> = .constant([])
     ) {
         self.rowView = rowView
         self.belowListView = belowListView
@@ -106,6 +106,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
             vm.isDeletionEnabled = isDeletionEnabled
             vm.isDropOnSeparatorEnabled = isDropOnSeparatorEnabled
             vm.isDropOnItemEnabled = isDropOnItemEnabled
+            vm.expandedItemsIDs = expandedItemIDs ?? []
         }
         .onChange(of: items) { newValue in
             vm.items = newValue
@@ -114,9 +115,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
             vm.isDeletionEnabled = newValue
         }
         .onChange(of: expandedItemIDs) { newValue in
-            if let newValue {
-                vm.expandedItemsIDs = newValue
-            }
+            vm.expandedItemsIDs = newValue
         }
         .onChange(of: isDropOnSeparatorEnabled) { newValue in
             vm.isDropOnSeparatorEnabled = newValue
