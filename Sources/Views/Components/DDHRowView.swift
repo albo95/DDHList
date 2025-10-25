@@ -17,6 +17,8 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
     let aboveItemPath: ItemPath?
     let belowItemPath: ItemPath?
     
+    let isShowingExpander: Bool
+    
     var isItemDragged: Bool { vm.draggedItem != nil && vm.draggedItem == item }
     var isOnItemTarget: Bool { vm.targetItem != nil && vm.targetItem == item }
     
@@ -46,8 +48,10 @@ struct DDHRowView<ItemType: DDHItem, Content: View>: View {
         //xxx
         // ZStack {
         HStack(alignment: .center, spacing: 0) {
-            expandButtonView(item: item)
-                .padding(.leading)
+            if isShowingExpander {
+                expandButtonView(item: item)
+                    .padding(.leading)
+            }
             
             content(item)
         }

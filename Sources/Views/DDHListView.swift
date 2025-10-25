@@ -14,6 +14,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     @Binding var isDeletionEnabled: Bool
     @Binding var isDropOnSeparatorEnabled: Bool
     @Binding var isDropOnItemEnabled: Bool
+    @Binding var isShowingExpander: Bool
     
     let rowView: (ItemType) -> RowContent
     let deleteView: (() -> any View)?
@@ -42,7 +43,8 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
                 hoverColor: Color = .blue,
                 isDeletionEnabled: Binding<Bool> = .constant(true),
                 isDropOnSeparatorEnabled: Binding<Bool> = .constant(true),
-                isDropOnItemEnabled: Binding<Bool> = .constant(true)) {
+                isDropOnItemEnabled: Binding<Bool> = .constant(true),
+                isShowingExpander: Binding<Bool> = .constant(true)) {
         self.rowView = rowView
         self.belowListView = belowListView
         self.deleteView = deleteView
@@ -51,6 +53,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         self._isDeletionEnabled = isDeletionEnabled
         self._isDropOnSeparatorEnabled = isDropOnSeparatorEnabled
         self._isDropOnItemEnabled = isDropOnItemEnabled
+        self._isShowingExpander = isShowingExpander
         
         _vm = StateObject(wrappedValue: DDHListViewModel(
             onDelete: onDelete,
@@ -135,7 +138,8 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
                     item: item,
                     path: itemPath,
                     aboveItemPath: aboveItemPath,
-                    belowItemPath: belowItemPath
+                    belowItemPath: belowItemPath,
+                    isShowingExpander: isShowingExpander
                 )
                 .swipeToDelete(onDelete: { vm.onDelete(item) },
                                isActive: vm.isDeletionEnabled,
