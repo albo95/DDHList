@@ -106,6 +106,8 @@ class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: Obser
     }
     
     func onDrag(_ item: ItemType) {
+        expandedItemsIDs.removeAll(where: { $0 == item.id })
+        
         if item == lastDroppedItem {
             draggedItem = nil
             lastDroppedItem = nil
