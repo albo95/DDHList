@@ -94,6 +94,7 @@ struct DDHListExamplePickerView: View {
             onItemDroppedOnOtherItem: { dragged, target in
                 print("Dragged \(dragged.name) dropped on target \(target.name)")
             },
+            rowBackgroundView: { Rectangle().foregroundStyle(Color.red) },
             hoverColor: .purple,
             isDeletionEnabled: .constant(false),
             isDropOnSeparatorEnabled: .constant(false),

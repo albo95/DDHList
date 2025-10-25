@@ -18,6 +18,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     let rowView: (ItemType) -> RowContent
     let deleteView: (() -> any View)?
     let belowListView: (() -> any View)?
+    let rowBackgroundView: (() -> any View)?
     
     @State private var isScrollDisabled: Bool = true
     @State private var totalTranslationWidth: CGFloat = 0
@@ -37,6 +38,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
                 ) -> Void = { _, _ in },
                 belowListView: (() -> any View)? = nil,
                 deleteView: (() -> any View)? = nil,
+                rowBackgroundView: (() -> any View)? = nil,
                 hoverColor: Color = .blue,
                 isDeletionEnabled: Binding<Bool> = .constant(true),
                 isDropOnSeparatorEnabled: Binding<Bool> = .constant(true),
@@ -44,6 +46,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         self.rowView = rowView
         self.belowListView = belowListView
         self.deleteView = deleteView
+        self.rowBackgroundView = rowBackgroundView
         self._items = items
         self._isDeletionEnabled = isDeletionEnabled
         self._isDropOnSeparatorEnabled = isDropOnSeparatorEnabled
@@ -123,36 +126,39 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     
     @ViewBuilder
     private func hierarchicalRowView(item: ItemType, itemPath: ItemPath, aboveItemPath: ItemPath, belowItemPath: ItemPath, index: Int) -> some View {
-        
-        HStack(alignment: .center, spacing: 0) {
-            expandButtonView(item: item)
-                .padding(.leading)
+        ZStack {
+            rowBackgroundView.map { AnyView($0()) }
             
-            VStack(spacing: 0) {
-                DDHRowView<ItemType, RowContent>(
-                    content: { rowView($0) },
-                    item: item,
-                    path: itemPath,
-                    aboveItemPath: aboveItemPath,
-                    belowItemPath: belowItemPath
-                )
-                .swipeToDelete(onDelete: { vm.onDelete(item) },
-                               isActive: vm.isDeletionEnabled,
-                               deleteView: deleteView.map { AnyView($0()) },
-                               isSwiped: Binding(
-                                get: { vm.currentlySwipedRowPath == itemPath },
-                                set: { newValue in
-                                    if newValue {
-                                        vm.currentlySwipedRowPath = itemPath
-                                    } else if vm.currentlySwipedRowPath == itemPath {
-                                        vm.resetRowSwiping()
-                                    }
-                                }))
+            HStack(alignment: .center, spacing: 0) {
+                expandButtonView(item: item)
+                    .padding(.leading)
                 
-                DDHSeparatorView<ItemType>(
-                    aboveItemPath: itemPath,
-                    belowItemPath: belowItemPath
-                )
+                VStack(spacing: 0) {
+                    DDHRowView<ItemType, RowContent>(
+                        content: { rowView($0) },
+                        item: item,
+                        path: itemPath,
+                        aboveItemPath: aboveItemPath,
+                        belowItemPath: belowItemPath
+                    )
+                    .swipeToDelete(onDelete: { vm.onDelete(item) },
+                                   isActive: vm.isDeletionEnabled,
+                                   deleteView: deleteView.map { AnyView($0()) },
+                                   isSwiped: Binding(
+                                    get: { vm.currentlySwipedRowPath == itemPath },
+                                    set: { newValue in
+                                        if newValue {
+                                            vm.currentlySwipedRowPath = itemPath
+                                        } else if vm.currentlySwipedRowPath == itemPath {
+                                            vm.resetRowSwiping()
+                                        }
+                                    }))
+                    
+                    DDHSeparatorView<ItemType>(
+                        aboveItemPath: itemPath,
+                        belowItemPath: belowItemPath
+                    )
+                }
             }
         }
     }

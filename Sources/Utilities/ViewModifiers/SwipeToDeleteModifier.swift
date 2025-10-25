@@ -100,7 +100,7 @@ struct SwipeToDeleteModifier: ViewModifier {
                     
                     Rectangle()
                         .foregroundStyle(.red)
-                        .frame(width: maxOffset - threshold)
+                        .frame(width: maxOffset)
                 }
                 .background(.red)
                 .offset(x: maxOffset)

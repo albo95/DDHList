@@ -18,6 +18,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     let rowView: (ItemType) -> RowContent
     let deleteView: (() -> any View)?
     let belowListView: (() -> any View)?
+    let rowBackgroundView: (() -> any View)?
     
     @State private var isScrollDisabled: Bool = true
     @State private var totalTranslationWidth: CGFloat = 0
@@ -37,6 +38,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
          ) -> Void = { _, _ in },
                 belowListView: (() -> any View)? = nil,
                 deleteView: (() -> any View)? = nil,
+                rowBackgroundView: (() -> any View)? = nil,
                 hoverColor: Color = .blue,
                 isDeletionEnabled: Binding<Bool> = .constant(true),
                 isDropOnSeparatorEnabled: Binding<Bool> = .constant(true),
@@ -44,6 +46,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
         self.rowView = rowView
         self.belowListView = belowListView
         self.deleteView = deleteView
+        self.rowBackgroundView = rowBackgroundView
         self._items = items
         self._isDeletionEnabled = isDeletionEnabled
         self._isDropOnSeparatorEnabled = isDropOnSeparatorEnabled
@@ -116,8 +119,9 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     
     @ViewBuilder
     private func hierarchicalRowView(item: ItemType, itemPath: ItemPath, aboveItemPath: ItemPath, belowItemPath: ItemPath, index: Int) -> some View {
-
-        HStack(alignment: .center, spacing: 0) {
+        ZStack {
+            rowBackgroundView.map { AnyView($0()) }
+            
             VStack(spacing: 0) {
                 DDHRowView<ItemType, RowContent>(
                     content: { rowView($0) },
