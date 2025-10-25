@@ -146,7 +146,6 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
                 DDHSeparatorView<ItemType>(
                     aboveItemPath: itemPath,
                     belowItemPath: belowItemPath)
-                .padding(.leading)
             }
         }
     }

@@ -154,7 +154,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
                     aboveItemPath: itemPath,
                     belowItemPath: belowItemPath
                 )
-                .padding(.leading)
             }
         }
     }

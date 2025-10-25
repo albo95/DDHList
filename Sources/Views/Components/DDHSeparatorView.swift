@@ -28,6 +28,7 @@ struct DDHSeparatorView<ItemType: Transferable & Identifiable & Equatable>: View
             .frame(height: 1)
             .foregroundStyle(isShowingHover ? vm.hoverColor : Color.gray)
             .opacity(isShowingHover ? 1 : isBetweenItemAndChildren ? 0.0001 : 0.2)
+            .padding(.leading, isShowingHover ? 0 : 16)
 //            pathsLogView
 //        }
         .dropDestination(for: ItemType.self) { droppedItems, _ in
