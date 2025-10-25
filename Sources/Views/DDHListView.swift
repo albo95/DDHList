@@ -67,7 +67,8 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
             onDelete: onDelete,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
             onItemDroppedOnOtherItem: onItemDroppedOnOtherItem,
-            hoverColor: hoverColor
+            hoverColor: hoverColor,
+            expandedItemsIDsBinding: expandedItemIDs
         ))
     }
     
@@ -122,9 +123,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         }
         .onChange(of: isDropOnItemEnabled) { newValue in
             vm.isDropOnItemEnabled = newValue
-        }
-        .onReceive(vm.$expandedItemsIDs) { newValue in
-            expandedItemIDs = newValue
         }
         //xxx
         //targetElementsLogView

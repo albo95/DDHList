@@ -23,6 +23,8 @@ class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: Obser
             updateItemsInList()
         }
     }
+    
+    private var expandedItemsIDsBinding: Binding<Set<ItemType.ID>>
     @Published var isDeletionEnabled: Bool = true
     @Published var isDropOnSeparatorEnabled: Bool = true
     @Published var isDropOnItemEnabled: Bool = true
@@ -62,12 +64,15 @@ class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: Obser
             _ draggedItem: ItemType,
             _ targetItem: ItemType
          ) -> Void = { _, _ in },
-         hoverColor: Color = .blue) {
+         hoverColor: Color = .blue,
+         expandedItemsIDsBinding: Binding<Set<ItemType.ID>> = .constant([])
+    ) {
         
         self.onDelete = onDelete
         self.onItemDroppedOnSeparator = onItemDroppedOnSeparator
         self.onItemDroppedOnOtherItem = onItemDroppedOnOtherItem
         self.hoverColor = hoverColor
+        self.expandedItemsIDsBinding = expandedItemsIDsBinding
     }
     
     func updateItemsInList() {
@@ -96,8 +101,10 @@ class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: Obser
     func toggleElementExpanded(itemID: ItemType.ID) {
         if expandedItemsIDs.contains(itemID) {
             expandedItemsIDs.remove(itemID)
+            expandedItemsIDsBinding.wrappedValue.remove(itemID)
         } else {
             expandedItemsIDs.insert(itemID)
+            expandedItemsIDsBinding.wrappedValue.insert(itemID)
         }
     }
     
