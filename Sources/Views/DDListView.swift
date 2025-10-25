@@ -19,6 +19,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     let deleteView: (() -> any View)?
     let belowListView: (() -> any View)?
     let rowBackgroundView: (() -> any View)?
+    let listBackgroundView: (() -> any View)?
     
     @State private var isScrollDisabled: Bool = false
     @State private var totalTranslationWidth: CGFloat = 0
@@ -39,6 +40,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
                 belowListView: (() -> any View)? = nil,
                 deleteView: (() -> any View)? = nil,
                 rowBackgroundView: (() -> any View)? = nil,
+                listBackgroundView: (() -> any View)? = nil,
                 hoverColor: Color = .blue,
                 isDeletionEnabled: Binding<Bool> = .constant(true),
                 isDropOnSeparatorEnabled: Binding<Bool> = .constant(true),
@@ -47,6 +49,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
         self.belowListView = belowListView
         self.deleteView = deleteView
         self.rowBackgroundView = rowBackgroundView
+        self.listBackgroundView = listBackgroundView
         self._items = items
         self._isDeletionEnabled = isDeletionEnabled
         self._isDropOnSeparatorEnabled = isDropOnSeparatorEnabled
@@ -63,7 +66,13 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     public var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                hierarchicalListSection(recursiveItems: items, path: [0], prevAboveItemPath: nil)
+                ZStack {
+                    listBackgroundView.map { AnyView($0()) }.allowsHitTesting(false)
+                    
+                    VStack(spacing: 0) {
+                        hierarchicalListSection(recursiveItems: items, path: [0], prevAboveItemPath: nil)
+                    }
+                }
                 
                 belowListView.map { AnyView($0()) }
             }
