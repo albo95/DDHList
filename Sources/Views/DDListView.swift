@@ -20,7 +20,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     let belowListView: (() -> any View)?
     let rowBackgroundView: (() -> any View)?
     
-    @State private var isScrollDisabled: Bool = true
+    @State private var isScrollDisabled: Bool = false
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
     
@@ -120,7 +120,7 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     @ViewBuilder
     private func hierarchicalRowView(item: ItemType, itemPath: ItemPath, aboveItemPath: ItemPath, belowItemPath: ItemPath, index: Int) -> some View {
         ZStack {
-            rowBackgroundView.map { AnyView($0()) }
+            rowBackgroundView.map { AnyView($0()) }.allowsHitTesting(false)
             
             VStack(spacing: 0) {
                 DDRowView<ItemType, RowContent>(
@@ -147,7 +147,6 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
                     aboveItemPath: itemPath,
                     belowItemPath: belowItemPath)
                 .padding(.leading)
-                
             }
         }
     }

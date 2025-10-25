@@ -20,7 +20,6 @@ struct SwipeToDeleteModifier: ViewModifier {
     let threshold: CGFloat
     let gestureSlower: CGFloat
 
-    
     init(
         onDelete: @escaping () -> Void,
         isActive: Bool = true,
@@ -41,44 +40,47 @@ struct SwipeToDeleteModifier: ViewModifier {
     }
     
     func body(content: Content) -> some View {
-        ZStack {
+        if isActive == false {
             content
-            
-            Rectangle().opacity(0.001)
-            
-            HStack {
-                Spacer()
-                trashIconButtonView
-                    .offset(x: offsetX)
-                    .opacity(CGFloat(1 - (offsetX / maxOffset)))
+        } else {
+            ZStack {
+                content
+                
+                Rectangle().opacity(0.001)
+                
+                HStack {
+                    Spacer()
+                    trashIconButtonView
+                        .offset(x: offsetX)
+                        .opacity(CGFloat(1 - (offsetX / maxOffset)))
+                }
             }
-        }
-        .simultaneousGesture(
-            DragGesture()
-                .onChanged { value in
-                    guard isActive else { return }
-                    if abs(value.translation.height) > abs(value.translation.width) {
-                        return
+            .gesture(
+                DragGesture(minimumDistance: 20)
+                    .onChanged { value in
+                        if abs(value.translation.height) > abs(value.translation.width) {
+                            return
+                        }
+                        
+                        let trashIconMovement = value.translation.width * gestureSlower
+                        if trashIconMovement > 0 {
+                            offsetX = min(offsetX + trashIconMovement, maxOffset)
+                        } else {
+                            offsetX = max(offsetX + trashIconMovement, 0 - maxOffset/2)
+                        }
                     }
-                    
-                    let trashIconMovement = value.translation.width * gestureSlower
-                    if trashIconMovement > 0 {
-                        offsetX = min(offsetX + trashIconMovement, maxOffset)
-                    } else {
-                        offsetX = max(offsetX + trashIconMovement, 0 - maxOffset/2)
+                    .onEnded { _ in
+                        if offsetX < threshold {
+                            showTrashIcon()
+                        } else {
+                            hideTrashIcon()
+                        }
                     }
+            )
+            .onChange(of: isSwiped) { newValue in
+                if !newValue {
+                    hideTrashIcon()
                 }
-                .onEnded { _ in
-                    if offsetX < threshold {
-                        showTrashIcon()
-                    } else {
-                        hideTrashIcon()
-                    }
-                }
-        )
-        .onChange(of: isSwiped) { newValue in
-            if !newValue {
-                hideTrashIcon()
             }
         }
     }

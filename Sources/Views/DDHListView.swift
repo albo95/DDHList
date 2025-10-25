@@ -20,7 +20,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     let belowListView: (() -> any View)?
     let rowBackgroundView: (() -> any View)?
     
-    @State private var isScrollDisabled: Bool = true
+    @State private var isScrollDisabled: Bool = false
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
     
