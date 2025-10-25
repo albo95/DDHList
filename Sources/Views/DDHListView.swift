@@ -15,6 +15,7 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     @Binding var isDropOnSeparatorEnabled: Bool
     @Binding var isDropOnItemEnabled: Bool
     @Binding var isShowingExpander: Bool
+    @Binding var expandedItemIDs: Set<ItemType.ID>?
     
     let rowView: (ItemType) -> RowContent
     let deleteView: (() -> any View)?
@@ -26,27 +27,30 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     @State private var totalTranslationWidth: CGFloat = 0
     @State private var totalTranslationHeight: CGFloat = 0
     
-    public init(items: Binding<[ItemType]>,
-                rowView: @escaping (ItemType) -> RowContent,
-                onDelete: @escaping (ItemType) -> Void = {_ in},
-                onItemDroppedOnSeparator: @escaping (
-                    _ draggedItem: ItemType,
-                    _ aboveItem: ItemType?,
-                    _ belowItem: ItemType?
-                ) -> Void = { _, _, _ in },
-                onItemDroppedOnOtherItem: @escaping (
-                    _ draggedItem: ItemType,
-                    _ targetItem: ItemType
-                ) -> Void = { _, _ in },
-                belowListView: (() -> any View)? = nil,
-                deleteView: (() -> any View)? = nil,
-                rowBackgroundView: (() -> any View)? = nil,
-                listBackgroundView: (() -> any View)? = nil,
-                hoverColor: Color = .blue,
-                isDeletionEnabled: Binding<Bool> = .constant(true),
-                isDropOnSeparatorEnabled: Binding<Bool> = .constant(true),
-                isDropOnItemEnabled: Binding<Bool> = .constant(true),
-                isShowingExpander: Binding<Bool> = .constant(true)) {
+    public init(
+        items: Binding<[ItemType]>,
+        rowView: @escaping (ItemType) -> RowContent,
+        onDelete: @escaping (ItemType) -> Void = {_ in},
+        onItemDroppedOnSeparator: @escaping (
+            _ draggedItem: ItemType,
+            _ aboveItem: ItemType?,
+            _ belowItem: ItemType?
+        ) -> Void = { _, _, _ in },
+        onItemDroppedOnOtherItem: @escaping (
+            _ draggedItem: ItemType,
+            _ targetItem: ItemType
+        ) -> Void = { _, _ in },
+        belowListView: (() -> any View)? = nil,
+        deleteView: (() -> any View)? = nil,
+        rowBackgroundView: (() -> any View)? = nil,
+        listBackgroundView: (() -> any View)? = nil,
+        hoverColor: Color = .blue,
+        isDeletionEnabled: Binding<Bool> = .constant(true),
+        isDropOnSeparatorEnabled: Binding<Bool> = .constant(true),
+        isDropOnItemEnabled: Binding<Bool> = .constant(true),
+        isShowingExpander: Binding<Bool> = .constant(true),
+        expandedItemIDs: Binding<Set<ItemType.ID>?> = .constant(nil)
+    ) {
         self.rowView = rowView
         self.belowListView = belowListView
         self.deleteView = deleteView
@@ -57,7 +61,8 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         self._isDropOnSeparatorEnabled = isDropOnSeparatorEnabled
         self._isDropOnItemEnabled = isDropOnItemEnabled
         self._isShowingExpander = isShowingExpander
-        
+        self._expandedItemIDs = expandedItemIDs
+
         _vm = StateObject(wrappedValue: DDHListViewModel(
             onDelete: onDelete,
             onItemDroppedOnSeparator: onItemDroppedOnSeparator,
@@ -108,11 +113,19 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
         .onChange(of: isDeletionEnabled) { newValue in
             vm.isDeletionEnabled = newValue
         }
+        .onChange(of: expandedItemIDs) { newValue in
+            if let newValue {
+                vm.expandedItemsIDs = newValue
+            }
+        }
         .onChange(of: isDropOnSeparatorEnabled) { newValue in
             vm.isDropOnSeparatorEnabled = newValue
         }
         .onChange(of: isDropOnItemEnabled) { newValue in
             vm.isDropOnItemEnabled = newValue
+        }
+        .onReceive(vm.$expandedItemsIDs) { newValue in
+            expandedItemIDs = newValue
         }
         //xxx
         //targetElementsLogView

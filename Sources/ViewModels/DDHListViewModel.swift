@@ -29,7 +29,7 @@ class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: Obser
     @Published var itemsInList: [ItemPath: ItemType] = [:]
     @Published var aboveDropTargetPath: ItemPath? = nil
     @Published var belowDropTargetPath: ItemPath? = nil
-    @Published var expandedItemsIDs: [ItemType.ID] = []
+    @Published var expandedItemsIDs: Set<ItemType.ID> = []
     @Published var currentlySwipedRowPath: ItemPath? = nil
     @Published var targetItem: ItemType? = nil
     @Published var draggedItem: ItemType? = nil {
@@ -94,10 +94,10 @@ class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: Obser
     }
     
     func toggleElementExpanded(itemID: ItemType.ID) {
-        if let index = expandedItemsIDs.firstIndex(of: itemID) {
-            expandedItemsIDs.remove(at: index)
+        if expandedItemsIDs.contains(itemID) {
+            expandedItemsIDs.remove(itemID)
         } else {
-            expandedItemsIDs.append(itemID)
+            expandedItemsIDs.insert(itemID)
         }
     }
     
@@ -106,7 +106,7 @@ class DDHListViewModel<ItemType: Transferable & Identifiable & Equatable>: Obser
     }
     
     func onDrag(_ item: ItemType) {
-        expandedItemsIDs.removeAll(where: { $0 == item.id })
+        expandedItemsIDs.remove(item.id)
         
         if item == lastDroppedItem {
             draggedItem = nil
