@@ -100,7 +100,7 @@ public struct SwipeToDeleteModifier: ViewModifier {
         } label: {
             Image(systemName: "trash.fill")
                 .foregroundStyle(.white)
-                .font(.system(size: 22, weight: .semibold))
+                .font(.system(size: 20, weight: .semibold))
                 .frame(maxHeight: .infinity)
                 .background(Color.red)
         }
