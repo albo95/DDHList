@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @available(iOS 16.0, *)
-struct SwipeToDeleteModifier: ViewModifier {
+public struct SwipeToDeleteModifier: ViewModifier {
     @Binding var isSwiped: Bool
     @State private var offsetX: CGFloat
     
@@ -19,11 +19,10 @@ struct SwipeToDeleteModifier: ViewModifier {
     let threshold: CGFloat
     let gestureSlower: CGFloat
     
-    init(
+    public init(
         onDelete: @escaping () -> Void,
         isActive: Bool = true,
         isSwiped: Binding<Bool>,
-        deleteView: AnyView? = nil,
         maxOffset: CGFloat = 90,
         threshold: CGFloat = 20,
         gestureSlower: CGFloat = 0.1
@@ -37,7 +36,7 @@ struct SwipeToDeleteModifier: ViewModifier {
         self.gestureSlower = gestureSlower
     }
     
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         if isActive == false {
             content
         } else {
@@ -55,13 +54,10 @@ struct SwipeToDeleteModifier: ViewModifier {
                 
                 ZStack {
                     Color.customInvertedPrimary
-                    
                     content
-                    
                     Rectangle().opacity(0.001)
                 }
                 .offset(x: offsetX)
-                
             }
             .gesture(
                 DragGesture(minimumDistance: 20)
@@ -69,7 +65,6 @@ struct SwipeToDeleteModifier: ViewModifier {
                         if abs(value.translation.height) > abs(value.translation.width) {
                             return
                         }
-                        
                         let trashIconMovement = value.translation.width * gestureSlower
                         if trashIconMovement < 0 {
                             offsetX = max(offsetX + trashIconMovement, -maxOffset * 1.5)
@@ -117,28 +112,19 @@ struct SwipeToDeleteModifier: ViewModifier {
             isSwiped = false
         }
     }
-    
-    private func showTrashIcon() {
-        withAnimation(.spring()) {
-            offsetX = -maxOffset
-            isSwiped = true
-        }
-    }
 }
 
 @available(iOS 16.0, *)
 public extension View {
-    public func swipeToDelete(
+    func swipeToDelete(
         onDelete: @escaping () -> Void,
         isActive: Bool = true,
-        deleteView: AnyView? = nil,
         isSwiped: Binding<Bool>
     ) -> some View {
         self.modifier(SwipeToDeleteModifier(
             onDelete: onDelete,
             isActive: isActive,
-            isSwiped: isSwiped,
-            deleteView: deleteView
+            isSwiped: isSwiped
         ))
     }
 }

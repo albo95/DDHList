@@ -40,7 +40,6 @@ This design gives you full flexibility to define how items are structured or mov
 - Works recursively at any level
 
 ### 🗑️ Swipe to Delete
-- Customizable delete button (`deleteView`)
 - Smooth spring animation
 - Optional enable/disable with `isDeletionEnabled`
 
