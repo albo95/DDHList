@@ -46,7 +46,6 @@ struct DDHListExamplePickerView: View {
             items: $itemsDeleteOnly,
             rowView: { RowExampleView(item: $0) },
             onDelete: { item in print("Deleted item: \(item.name)") },
-            deleteView: { DeleteExampleView() },
             hoverColor: .blue,
             isDeletionEnabled: .constant(true),
             isDropOnSeparatorEnabled: .constant(false),

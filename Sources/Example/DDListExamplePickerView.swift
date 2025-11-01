@@ -51,7 +51,6 @@ struct DDListExamplePickerView: View {
             onDelete: { item in
                 print("Deleted item: \(item.name)")
             },
-            deleteView: { DeleteExampleView() },
             hoverColor: .blue,
             isDeletionEnabled: .constant(true),
             isDropOnSeparatorEnabled: .constant(false),

@@ -18,7 +18,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     @Binding var expandedItemIDs: Set<ItemType.ID>
     
     let rowView: (ItemType) -> RowContent
-    let deleteView: (() -> any View)?
     let belowListView: (() -> any View)?
     let rowBackgroundView: (() -> any View)?
     let listBackgroundView: (() -> any View)?
@@ -41,7 +40,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
             _ targetItem: ItemType
         ) -> Void = { _, _ in },
         belowListView: (() -> any View)? = nil,
-        deleteView: (() -> any View)? = nil,
         rowBackgroundView: (() -> any View)? = nil,
         listBackgroundView: (() -> any View)? = nil,
         hoverColor: Color = .blue,
@@ -53,7 +51,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
     ) {
         self.rowView = rowView
         self.belowListView = belowListView
-        self.deleteView = deleteView
         self.rowBackgroundView = rowBackgroundView
         self.listBackgroundView = listBackgroundView
         self._items = items
@@ -162,7 +159,6 @@ public struct DDHListView<ItemType: DDHItem, RowContent: View>: View {
                 )
                 .swipeToDelete(onDelete: { vm.onDelete(item) },
                                isActive: vm.isDeletionEnabled,
-                               deleteView: deleteView.map { AnyView($0()) },
                                isSwiped: Binding(
                                 get: { vm.currentlySwipedRowPath == itemPath },
                                 set: { newValue in

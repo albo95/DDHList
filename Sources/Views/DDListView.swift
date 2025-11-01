@@ -16,7 +16,6 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
     @Binding var isDropOnItemEnabled: Bool
     
     let rowView: (ItemType) -> RowContent
-    let deleteView: (() -> any View)?
     let belowListView: (() -> any View)?
     let rowBackgroundView: (() -> any View)?
     let listBackgroundView: (() -> any View)?
@@ -38,7 +37,6 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
                     _ targetItem: ItemType
                 ) -> Void = { _, _ in },
                 belowListView: (() -> any View)? = nil,
-                deleteView: (() -> any View)? = nil,
                 rowBackgroundView: (() -> any View)? = nil,
                 listBackgroundView: (() -> any View)? = nil,
                 hoverColor: Color = .blue,
@@ -47,7 +45,6 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
                 isDropOnItemEnabled: Binding<Bool> = .constant(true)) {
         self.rowView = rowView
         self.belowListView = belowListView
-        self.deleteView = deleteView
         self.rowBackgroundView = rowBackgroundView
         self.listBackgroundView = listBackgroundView
         self._items = items
@@ -141,7 +138,6 @@ public struct DDListView<ItemType: Transferable & Identifiable & Equatable, RowC
                 )
                 .swipeToDelete(onDelete: { vm.onDelete(item) },
                                isActive: vm.isDeletionEnabled,
-                               deleteView: deleteView.map { AnyView($0()) },
                                isSwiped: Binding(
                                 get: { vm.currentlySwipedRowPath == itemPath },
                                 set: { newValue in
